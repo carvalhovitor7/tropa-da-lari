@@ -26,11 +26,12 @@ function IconActivity({ c }: { c: string }) {
     </svg>
   );
 }
-function IconBook({ c }: { c: string }) {
+function IconWallet({ c }: { c: string }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5V5.5z" />
-      <line x1="8" y1="8" x2="16" y2="8" />
+      <path d="M3 7a2 2 0 012-2h13a1 1 0 011 1v3" />
+      <path d="M21 12v6a2 2 0 01-2 2H5a2 2 0 01-2-2V7" />
+      <path d="M16 14h3v3h-3a1.5 1.5 0 010-3z" />
     </svg>
   );
 }
@@ -38,8 +39,8 @@ function IconBook({ c }: { c: string }) {
 const ITEMS: { key: ScreenKey; label: string; Icon: (p: { c: string }) => React.JSX.Element }[] = [
   { key: "dashboard", label: "Início", Icon: IconHome },
   { key: "alunas", label: "Alunos", Icon: IconUsers },
-  { key: "treinos-ph", label: "Treinos", Icon: IconActivity },
-  { key: "biblioteca-ph", label: "Biblioteca", Icon: IconBook },
+  { key: "acompanhamento", label: "Acompanhamento", Icon: IconActivity },
+  { key: "financeiro", label: "Financeiro", Icon: IconWallet },
 ];
 
 export function BottomNav() {

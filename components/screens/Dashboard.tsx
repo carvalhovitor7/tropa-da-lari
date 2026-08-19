@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { useApp } from "@/lib/store";
-import { treinoDateSummary } from "@/lib/dates";
+import { treinoDateSummary, isAlunaVencida } from "@/lib/dates";
 
 export function Dashboard() {
   const { state, navTo, openPerfil, openTreino, setAlunaId, syncTriagens } = useApp();
@@ -12,6 +12,8 @@ export function Dashboard() {
     syncTriagens();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
+
+  const vencidas = state.alunas.filter((a) => a.hasTreinos && isAlunaVencida(a.treinos, state.settings.renewalWeeks));
 
   const recentTreinos = state.alunas
     .flatMap((a) => a.treinos.map((t) => ({ aluna: a, treino: t })))
@@ -32,6 +34,19 @@ export function Dashboard() {
           <div className="text-[15px] text-ink-soft mt-1">O que vamos montar hoje?</div>
         </div>
       </div>
+
+      {vencidas.length > 0 && (
+        <button
+          onClick={() => navTo("acompanhamento")}
+          className="text-left rounded-2xl p-3.5 flex items-center gap-2.5 cursor-pointer border-none"
+          style={{ background: "#FBF0DC" }}
+        >
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#B08628" }} />
+          <span className="text-[13px] font-bold" style={{ color: "#B08628" }}>
+            {vencidas.length} {vencidas.length === 1 ? "aluno está" : "alunos estão"} com treino vencido
+          </span>
+        </button>
+      )}
 
       <button
         onClick={() => navTo("alunas")}

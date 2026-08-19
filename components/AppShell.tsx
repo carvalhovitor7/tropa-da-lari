@@ -7,7 +7,8 @@ import { BottomNav } from "./BottomNav";
 import { Toast } from "./Toast";
 import { Dashboard } from "./screens/Dashboard";
 import { Alunas } from "./screens/Alunas";
-import { PlaceholderTab } from "./screens/PlaceholderTab";
+import { Acompanhamento } from "./screens/Acompanhamento";
+import { Financeiro } from "./screens/Financeiro";
 import { Perfil } from "./screens/Perfil";
 import { Iniciar } from "./screens/Iniciar";
 import { Modelos } from "./screens/Modelos";
@@ -24,7 +25,7 @@ import { TriagemStep } from "./screening/TriagemStep";
 import { currentAluna } from "@/lib/store";
 import { alunoNoun } from "@/lib/gender";
 
-const TOP_SCREENS: ScreenKey[] = ["dashboard", "alunas", "treinos-ph", "biblioteca-ph"];
+const TOP_SCREENS: ScreenKey[] = ["dashboard", "alunas", "acompanhamento", "financeiro"];
 const TRIAGEM_SCREENS: ScreenKey[] = [
   "triagem-perfil",
   "triagem-dor",
@@ -75,9 +76,8 @@ export function AppShell() {
 
         {state.screen === "dashboard" && <Dashboard />}
         {state.screen === "alunas" && <Alunas />}
-        {(state.screen === "treinos-ph" || state.screen === "biblioteca-ph") && (
-          <PlaceholderTab title={state.screen === "treinos-ph" ? "Treinos" : "Biblioteca"} />
-        )}
+        {state.screen === "acompanhamento" && <Acompanhamento />}
+        {state.screen === "financeiro" && <Financeiro />}
         {state.screen === "perfil" && <Perfil />}
         {state.screen === "iniciar" && <Iniciar />}
         {state.screen === "modelos" && <Modelos />}

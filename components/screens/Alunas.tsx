@@ -1,14 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useApp } from "@/lib/store";
 import { FREQUENCIAS, OBJETIVOS } from "@/lib/data";
 import { Chip } from "@/components/ui/Chip";
 import { Genero } from "@/lib/types";
+import { isAlunaVencida } from "@/lib/dates";
 
 export function Alunas() {
-  const { state, setAlunaSearch, openPerfil, openAddAluna, closeAddAluna, chooseAddAlunaMode, setAddAlunaDraft, submitAddAlunaLink, submitAddAlunaManual, toast } = useApp();
-  const filtered = state.alunas.filter((a) => a.name.toLowerCase().includes(state.alunaSearch.toLowerCase()));
+  const {
+    state,
+    setAlunaSearch,
+    openPerfil,
+    openAddAluna,
+    closeAddAluna,
+    chooseAddAlunaMode,
+    setAddAlunaDraft,
+    submitAddAlunaLink,
+    submitAddAlunaManual,
+    toast,
+    setAlunaFilterObjetivo,
+    setAlunaFilterNivel,
+    setAlunaFilterVencido,
+  } = useApp();
+
+  const objetivosPresentes = useMemo(
+    () => Array.from(new Set(state.alunas.map((a) => a.goal).filter(Boolean))),
+    [state.alunas]
+  );
+  const niveisPresentes = useMemo(() => Array.from(new Set(state.alunas.map((a) => a.level).filter(Boolean))), [state.alunas]);
+
+  const filtered = state.alunas.filter((a) => {
+    if (!a.name.toLowerCase().includes(state.alunaSearch.toLowerCase())) return false;
+    if (state.alunaFilterObjetivo && a.goal !== state.alunaFilterObjetivo) return false;
+    if (state.alunaFilterNivel && a.level !== state.alunaFilterNivel) return false;
+    if (state.alunaFilterVencido && !isAlunaVencida(a.treinos, state.settings.renewalWeeks)) return false;
+    return true;
+  });
   const [copied, setCopied] = useState(false);
 
   const copyLink = async () => {
@@ -45,13 +73,45 @@ export function Alunas() {
         placeholder="Buscar aluno…"
         className="w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
       />
+
+      {(objetivosPresentes.length > 0 || niveisPresentes.length > 0) && (
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            <Chip label="Treino vencido" small active={state.alunaFilterVencido} onClick={() => setAlunaFilterVencido(!state.alunaFilterVencido)} />
+            {niveisPresentes.map((n) => (
+              <Chip key={n} label={n} small active={state.alunaFilterNivel === n} onClick={() => setAlunaFilterNivel(state.alunaFilterNivel === n ? null : n)} />
+            ))}
+          </div>
+          {objetivosPresentes.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {objetivosPresentes.map((o) => (
+                <Chip
+                  key={o}
+                  label={o}
+                  small
+                  active={state.alunaFilterObjetivo === o}
+                  onClick={() => setAlunaFilterObjetivo(state.alunaFilterObjetivo === o ? null : o)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3">
         {filtered.map((al) => (
           <div key={al.id} className="bg-white rounded-[18px] p-4 flex flex-col gap-2.5" style={{ boxShadow: "0 10px 24px -14px rgba(58,52,46,0.22)" }}>
             <div className="flex gap-3 items-center">
               <div className="w-12 h-12 rounded-full flex items-center justify-center text-sage font-bold bg-sage-bg shrink-0">{al.initials}</div>
-              <div className="min-w-0">
-                <div className="text-base font-bold text-ink">{al.name}</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="text-base font-bold text-ink">{al.name}</div>
+                  {isAlunaVencida(al.treinos, state.settings.renewalWeeks) && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#FBF0DC", color: "#B08628" }}>
+                      Treino vencido
+                    </span>
+                  )}
+                </div>
                 <div className="text-[13px] text-ink-soft">{al.goal || "Perfil ainda incompleto"}</div>
               </div>
             </div>
@@ -262,6 +322,16 @@ export function Alunas() {
                       className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="text-[13px] font-bold text-ink">WhatsApp (opcional)</label>
+                  <input
+                    value={state.addAlunaDraft.whatsapp}
+                    onChange={(e) => setAddAlunaDraft({ whatsapp: e.target.value })}
+                    placeholder="ex: 11 91234-5678"
+                    inputMode="tel"
+                    className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                  />
                 </div>
                 <div>
                   <label className="text-[13px] font-bold text-ink">Instagram (opcional)</label>

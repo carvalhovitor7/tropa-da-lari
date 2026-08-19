@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
     genero?: "feminino" | "masculino" | "nao_informado";
     idade?: number;
     local?: string;
+    whatsapp?: string;
   };
   if (!input.name.trim()) {
     return NextResponse.json({ error: "name_required" }, { status: 400 });

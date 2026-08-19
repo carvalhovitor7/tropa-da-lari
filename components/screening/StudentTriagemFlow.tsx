@@ -31,6 +31,9 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
   const [draft, setDraftState] = useState<TriagemDraft>(emptyDraft);
   const [stage, setStage] = useState<Stage>("intro");
   const [errorMsg, setErrorMsg] = useState("");
+  // Item 8: optional WhatsApp number the student can add herself, sent
+  // alongside the screening answers and landed on her profile the same way.
+  const [whatsapp, setWhatsapp] = useState("");
 
   const setDraft = (field: keyof TriagemDraft, value: unknown) =>
     setDraftState((d) => ({ ...d, [field]: value }));
@@ -75,7 +78,7 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
       const res = await fetch(`/api/triagem/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...draft, completedAt: new Date().toISOString() }),
+        body: JSON.stringify({ ...draft, completedAt: new Date().toISOString(), whatsapp }),
       });
       if (!res.ok) throw new Error("request_failed");
       setStage("done");
@@ -87,7 +90,9 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
 
   return (
     <div className="mx-auto w-full max-w-[430px] min-h-dvh bg-app flex flex-col relative shadow-2xl">
-      {stage === "intro" && <Intro firstName={firstName} onStart={() => setStage(0)} />}
+      {stage === "intro" && (
+        <Intro firstName={firstName} whatsapp={whatsapp} onWhatsappChange={setWhatsapp} onStart={() => setStage(0)} />
+      )}
 
       {(typeof stage === "number" || stage === "resumo") && (
         <TriagemFormContext.Provider value={formApi}>
@@ -160,7 +165,17 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
   );
 }
 
-function Intro({ firstName, onStart }: { firstName: string; onStart: () => void }) {
+function Intro({
+  firstName,
+  whatsapp,
+  onWhatsappChange,
+  onStart,
+}: {
+  firstName: string;
+  whatsapp: string;
+  onWhatsappChange: (v: string) => void;
+  onStart: () => void;
+}) {
   return (
     <div className="px-5 pt-8 pb-10 flex flex-col gap-5 flex-1">
       <div className="w-13 h-13 rounded-2xl bg-sage-bg flex items-center justify-center">
@@ -179,6 +194,17 @@ function Intro({ firstName, onStart }: { firstName: string; onStart: () => void 
       <div className="bg-white rounded-2xl p-4 text-[13px] text-ink-soft leading-relaxed" style={{ boxShadow: "0 8px 20px -14px rgba(58,52,46,0.2)" }}>
         Isto não substitui avaliação médica ou fisioterapêutica. Suas respostas servem apenas de apoio para a Lari
         montar seu treino.
+      </div>
+      <div className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 8px 20px -14px rgba(58,52,46,0.2)" }}>
+        <label className="text-[13px] font-bold text-ink">Seu WhatsApp (opcional)</label>
+        <input
+          value={whatsapp}
+          onChange={(e) => onWhatsappChange(e.target.value)}
+          placeholder="ex: 11 91234-5678"
+          inputMode="tel"
+          className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+        />
+        <div className="text-xs text-ink-soft mt-1.5">Assim a Lari pode te enviar o treino direto por lá.</div>
       </div>
       <div className="flex-1" />
       <button

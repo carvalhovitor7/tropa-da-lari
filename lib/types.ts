@@ -1,8 +1,8 @@
 export type ScreenKey =
   | "dashboard"
   | "alunas"
-  | "treinos-ph"
-  | "biblioteca-ph"
+  | "acompanhamento"
+  | "financeiro"
   | "perfil"
   | "iniciar"
   | "modelos"
@@ -106,6 +106,10 @@ export interface Aluna {
   // Free-text training location (e.g. "Academia completa", "Casa", "Ar
   // livre"), also shown on the printable ficha.
   local?: string;
+  // Phone number (digits, may include country/area code) used for the
+  // direct wa.me deep-link share (item 8). Optional — falls back to the
+  // generic Web Share sheet when empty.
+  whatsapp: string;
 }
 
 // A custom, Larissa-authored workout template (item 2 "Criar modelo").
@@ -201,6 +205,7 @@ export interface AddAlunaDraft {
   genero: Genero;
   idade: string;
   local: string;
+  whatsapp: string;
 }
 
 export const emptyAddAlunaDraft = (): AddAlunaDraft => ({
@@ -212,12 +217,65 @@ export const emptyAddAlunaDraft = (): AddAlunaDraft => ({
   genero: "nao_informado",
   idade: "",
   local: "",
+  whatsapp: "",
 });
 
 export interface ModeloDraft {
   name: string;
   desc: string;
 }
+
+// --- item 5: "Acompanhamento" (evolução) ------------------------------
+
+export interface EvolucaoMedidas {
+  cintura?: number;
+  quadril?: number;
+  braco?: number;
+  coxa?: number;
+}
+
+export interface EvolucaoEntry {
+  id: string;
+  alunaId: string;
+  data: string; // ISO date the measurement refers to
+  peso?: number; // kg
+  medidas: EvolucaoMedidas; // cm
+  fotos: string[]; // Vercel Blob URLs, or base64 data URLs as a fallback
+  createdAt: string;
+}
+
+// --- item 6: "Financeiro" -----------------------------------------------
+
+export type PlanoTipo = "diario" | "semanal" | "mensal" | "trimestral";
+export const PLANO_LABELS: Record<PlanoTipo, string> = {
+  diario: "Diário",
+  semanal: "Semanal",
+  mensal: "Mensal",
+  trimestral: "Trimestral",
+};
+export const PLANO_VALOR_PADRAO: Record<PlanoTipo, number> = {
+  diario: 0,
+  semanal: 0,
+  mensal: 0,
+  trimestral: 0,
+};
+
+export interface Financeiro {
+  alunaId: string;
+  plano: PlanoTipo | "";
+  valor: number | null;
+  dataPagamento: string | null; // ISO date of last payment
+  updatedAt?: string;
+}
+
+export type FinanceiroStatus = "em_dia" | "vencendo" | "atrasado" | "sem_dados";
+
+export interface AppSettings {
+  renewalWeeks: number;
+  pixKey: string;
+}
+
+export const DEFAULT_SETTINGS: AppSettings = { renewalWeeks: 4, pixKey: "" };
 
 export interface AppState {
   screen: ScreenKey;
@@ -253,4 +311,12 @@ export interface AppState {
   addAlunaDraft: AddAlunaDraft;
   addAlunaLinkUrl: string | null;
   addAlunaBusy: boolean;
+  // Items 4/5/6: app-wide settings (renewal reminder threshold, PIX key),
+  // fetched from Postgres and shared across the Alunos filter, the
+  // Acompanhamento "vencido" banner and the Financeiro tab.
+  settings: AppSettings;
+  // item 4: filter chips on the Alunos tab.
+  alunaFilterObjetivo: string | null;
+  alunaFilterNivel: string | null;
+  alunaFilterVencido: boolean;
 }

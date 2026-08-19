@@ -32,6 +32,10 @@ ALTER TABLE alunas ADD COLUMN IF NOT EXISTS genero TEXT NOT NULL DEFAULT 'nao_in
 ALTER TABLE alunas ADD COLUMN IF NOT EXISTS idade INTEGER;
 ALTER TABLE alunas ADD COLUMN IF NOT EXISTS local TEXT NOT NULL DEFAULT '';
 
+-- Aluna's WhatsApp phone number (item 8), used for the direct wa.me deep
+-- link share instead of the generic OS share sheet. Optional/free-text.
+ALTER TABLE alunas ADD COLUMN IF NOT EXISTS whatsapp TEXT NOT NULL DEFAULT '';
+
 -- One screening record per aluna. Submitting again (student resubmits, or
 -- Larissa fills it manually) overwrites the previous answers (see
 -- lib/triagemService.ts submitScreening -> ON CONFLICT (aluna_id) DO UPDATE).
@@ -78,3 +82,49 @@ CREATE TABLE IF NOT EXISTS screenings (
   completed_at TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Item 5 "Acompanhamento": dated evolução entries per aluna (peso, medidas,
+-- fotos). Real server-side data (never local-only), consistent with the
+-- "sync should always reflect the server" theme of this task.
+CREATE TABLE IF NOT EXISTS evolucao (
+  id TEXT PRIMARY KEY,
+  aluna_id TEXT NOT NULL REFERENCES alunas(id) ON DELETE CASCADE,
+  data TEXT NOT NULL,
+  peso NUMERIC,
+  medidas JSONB NOT NULL DEFAULT '{}',
+  fotos JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS evolucao_aluna_id_idx ON evolucao (aluna_id);
+
+-- Item 5/6: single-row app-wide settings (renewal reminder threshold, PIX
+-- key). id=1 is the only row that should ever exist.
+CREATE TABLE IF NOT EXISTS settings (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  renewal_weeks INTEGER NOT NULL DEFAULT 4,
+  pix_key TEXT NOT NULL DEFAULT '',
+  CONSTRAINT settings_singleton CHECK (id = 1)
+);
+INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+-- Item 6 "Financeiro": one billing record per aluna.
+CREATE TABLE IF NOT EXISTS financeiro (
+  aluna_id TEXT PRIMARY KEY REFERENCES alunas(id) ON DELETE CASCADE,
+  plano TEXT NOT NULL DEFAULT '',
+  valor NUMERIC,
+  data_pagamento TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Item 8: durable, shareable read-only snapshot of a finalized/sent treino,
+-- so the WhatsApp deep link (wa.me) can point somewhere the aluna can open
+-- on her own phone even though treinos otherwise live only in Larissa's
+-- local browser storage. See app/ficha/[token]/page.tsx.
+CREATE TABLE IF NOT EXISTS treino_shares (
+  token TEXT PRIMARY KEY,
+  aluna_id TEXT NOT NULL REFERENCES alunas(id) ON DELETE CASCADE,
+  treino_json JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS treino_shares_aluna_id_idx ON treino_shares (aluna_id);

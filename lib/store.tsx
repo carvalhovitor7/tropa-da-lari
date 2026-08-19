@@ -5,7 +5,9 @@ import { ALUNAS as SEED_ALUNAS, DEMO_EXERCISES, TEMPLATES, TRIAGENS_SEED } from 
 import {
   AddAlunaDraft,
   Aluna,
+  AppSettings,
   AppState,
+  DEFAULT_SETTINGS,
   Exercise,
   Modelo,
   ScreenKey,
@@ -57,6 +59,10 @@ function initialState(): AppState {
     addAlunaDraft: emptyAddAlunaDraft(),
     addAlunaLinkUrl: null,
     addAlunaBusy: false,
+    settings: DEFAULT_SETTINGS,
+    alunaFilterObjetivo: null,
+    alunaFilterNivel: null,
+    alunaFilterVencido: false,
   };
 }
 
@@ -132,6 +138,17 @@ interface AppApi {
   setIniciarWeeklyTarget: (grupo: string, reps: number | null) => void;
   navTo: (screen: ScreenKey) => void;
   syncTriagens: () => void;
+  // item 4: Alunos search/filter chips.
+  setAlunaFilterObjetivo: (v: string | null) => void;
+  setAlunaFilterNivel: (v: string | null) => void;
+  setAlunaFilterVencido: (v: boolean) => void;
+  // items 5/6: settings (renewal threshold, PIX key).
+  syncSettings: () => void;
+  updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
+  // item 8: persists a read-only snapshot of the treino currently in
+  // state.exercises/treinoName/etc. and returns its public /ficha/{token}
+  // URL, or null if it couldn't be created (offline / no DB).
+  createShareLink: () => Promise<string | null>;
   // "Adicionar aluna" (item 1)
   openAddAluna: () => void;
   closeAddAluna: () => void;
@@ -140,7 +157,7 @@ interface AppApi {
   submitAddAlunaLink: () => Promise<void>;
   submitAddAlunaManual: () => Promise<void>;
   updateAlunaInstagram: (id: string, instagram: string) => void;
-  updateAlunaProfile: (id: string, patch: { idade?: number; local?: string }) => void;
+  updateAlunaProfile: (id: string, patch: { idade?: number; local?: string; whatsapp?: string }) => void;
   deleteAluna: (id: string) => Promise<boolean>;
   // "Criar modelo" (item 2)
   onCriarModelo: () => void;
@@ -156,7 +173,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration from localStorage after mount, unavoidable for client-only persistence
     setState(loadState());
     setHydrated(true);
   }, []);
@@ -516,12 +532,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Pulls alunas + latest screening answers from Postgres (via /api/alunas)
-  // and merges them into local state. This is how a triagem submitted by a
-  // student on her own phone (see app/triagem/[token]) shows up in
-  // Larissa's app, and how an aluna added from another session/device shows
-  // up here too. Local-only fields (treinos, and treino history) are
-  // preserved for alunas that already exist locally. Silently no-ops if the
-  // API/DB isn't reachable so it never blocks the rest of the app.
+  // and REPLACES local state with the server's list (item 3 "robust sync").
+  // The server is authoritative for aluna existence and every
+  // server-persisted profile field — this is what makes a deletion or edit
+  // made elsewhere (another device, or the student's own /triagem/[token]
+  // submission) show up here without a manual localStorage clear. The only
+  // fields preserved from local state are the ones that only ever live in
+  // localStorage per this app's architecture (treinos + their version
+  // history, hasTreinos) — nothing server-authoritative is merged in a
+  // stale-preserving way. Silently no-ops if the API/DB isn't reachable so
+  // it never blocks the rest of the app (e.g. offline).
   const syncTriagens = useCallback(() => {
     let cancelled = false;
     (async () => {
@@ -529,60 +549,141 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch("/api/alunas", { cache: "no-store" });
         if (!res.ok) return;
         const data = (await res.json()) as {
-          alunas: { aluna: Omit<Aluna, "treinos" | "hasTreinos"> & { hasTreinos: boolean }; triagem: TriagemDraft | null }[];
+          alunas: { aluna: Omit<Aluna, "treinos" | "hasTreinos">; triagem: TriagemDraft | null }[];
         };
         if (cancelled || !Array.isArray(data.alunas)) return;
         setState((s) => {
-          const triagens = { ...s.triagens };
-          const byId = new Map(s.alunas.map((a) => [a.id, a]));
-          for (const entry of data.alunas) {
+          const triagens: Record<string, TriagemDraft> = {};
+          const localById = new Map(s.alunas.map((a) => [a.id, a]));
+          const alunas: Aluna[] = data.alunas.map((entry) => {
             if (entry.triagem) triagens[entry.aluna.id] = entry.triagem;
-            const existing = byId.get(entry.aluna.id);
-            if (existing) {
-              byId.set(entry.aluna.id, {
-                ...existing,
-                name: entry.aluna.name,
-                firstName: entry.aluna.firstName,
-                initials: entry.aluna.initials,
-                goal: entry.aluna.goal,
-                freq: entry.aluna.freq,
-                level: entry.aluna.level,
-                notes: entry.aluna.notes,
-                instagram: entry.aluna.instagram ?? existing.instagram ?? "",
-                genero: entry.aluna.genero ?? existing.genero ?? "nao_informado",
-                idade: entry.aluna.idade ?? existing.idade,
-                local: entry.aluna.local ?? existing.local,
-              });
-            } else {
-              byId.set(entry.aluna.id, {
-                id: entry.aluna.id,
-                name: entry.aluna.name,
-                firstName: entry.aluna.firstName,
-                initials: entry.aluna.initials,
-                goal: entry.aluna.goal,
-                freq: entry.aluna.freq,
-                last: entry.aluna.last ?? "",
-                level: entry.aluna.level,
-                notes: entry.aluna.notes,
-                instagram: entry.aluna.instagram ?? "",
-                genero: entry.aluna.genero ?? "nao_informado",
-                hasTreinos: false,
-                treinos: [],
-                idade: entry.aluna.idade,
-                local: entry.aluna.local,
-              });
-            }
-          }
-          return { ...s, triagens, alunas: Array.from(byId.values()) };
+            const local = localById.get(entry.aluna.id);
+            return {
+              id: entry.aluna.id,
+              name: entry.aluna.name,
+              firstName: entry.aluna.firstName,
+              initials: entry.aluna.initials,
+              goal: entry.aluna.goal,
+              freq: entry.aluna.freq,
+              last: entry.aluna.last ?? "",
+              level: entry.aluna.level,
+              notes: entry.aluna.notes,
+              instagram: entry.aluna.instagram ?? "",
+              genero: entry.aluna.genero ?? "nao_informado",
+              idade: entry.aluna.idade,
+              local: entry.aluna.local,
+              whatsapp: entry.aluna.whatsapp ?? "",
+              // Local-only fields (never persisted server-side) — carried
+              // over from whatever we had locally for this aluna, or empty
+              // for one that's new to this device.
+              hasTreinos: local?.hasTreinos ?? false,
+              treinos: local?.treinos ?? [],
+            };
+          });
+          return { ...s, triagens, alunas };
         });
       } catch {
-        // offline / no DB configured yet — local seed data stays as-is
+        // offline / no DB configured yet — local state stays as-is
       }
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // item 3: also re-sync whenever the tab regains focus/visibility, so
+  // switching back to the app after it was edited elsewhere (another
+  // device, or a student's own triagem submission) picks up changes without
+  // a manual reload.
+  useEffect(() => {
+    if (!hydrated) return;
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === "hidden") return;
+      syncTriagens();
+      syncSettings();
+    };
+    // Settings has no per-screen mount effect of its own (unlike
+    // syncTriagens, which Dashboard/Perfil already call on mount), so fetch
+    // it once here.
+    syncSettings();
+    window.addEventListener("focus", onFocusOrVisible);
+    document.addEventListener("visibilitychange", onFocusOrVisible);
+    return () => {
+      window.removeEventListener("focus", onFocusOrVisible);
+      document.removeEventListener("visibilitychange", onFocusOrVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- syncTriagens/syncSettings are stable useCallbacks
+  }, [hydrated]);
+
+  // item 4: Alunos search/filter chips.
+  const setAlunaFilterObjetivo = useCallback((v: string | null) => setState((s) => ({ ...s, alunaFilterObjetivo: v })), []);
+  const setAlunaFilterNivel = useCallback((v: string | null) => setState((s) => ({ ...s, alunaFilterNivel: v })), []);
+  const setAlunaFilterVencido = useCallback((v: boolean) => setState((s) => ({ ...s, alunaFilterVencido: v })), []);
+
+  // items 5/6: settings (renewal threshold, PIX key) — fetched from
+  // Postgres so the "Treino vencido" filter (item 4), the Acompanhamento
+  // banner (item 5) and the Financeiro PIX field (item 6) all agree.
+  const syncSettings = useCallback(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/settings", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { settings: AppSettings };
+        if (data.settings) setState((s) => ({ ...s, settings: data.settings }));
+      } catch {
+        // offline / no DB configured — keep whatever we had
+      }
+    })();
+  }, []);
+
+  const updateSettingsApi = useCallback(async (patch: Partial<AppSettings>) => {
+    setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { settings: AppSettings };
+        if (data.settings) setState((s) => ({ ...s, settings: data.settings }));
+      }
+    } catch {
+      // offline — local optimistic update already applied
+    }
+  }, []);
+
+  // item 8: persists a read-only snapshot of the current in-progress treino
+  // (state.exercises + metadata), mirroring the shape `approve()` saves
+  // locally, so the WhatsApp deep link has a real page the aluna can open.
+  const createShareLink = useCallback(async (): Promise<string | null> => {
+    const s = state;
+    const aluna = currentAluna(s);
+    const treino: Treino = {
+      id: s.treinoId || makeId(),
+      name: s.treinoName,
+      foco: s.treinoFoco,
+      exercises: s.exercises.map((e) => ({ ...e })),
+      createdAt: s.treinoCreatedAt || new Date().toISOString(),
+      sentAt: s.treinoSentAt ?? undefined,
+      weeklyRepTargets: s.weeklyRepTargets,
+      versions: s.treinoVersions,
+      enfase: s.treinoEnfase || undefined,
+      observacoesTreinadora: s.treinoObsTreinadora || undefined,
+    };
+    try {
+      const res = await fetch("/api/treino-shares", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alunaId: aluna.id, alunaName: aluna.name, alunaGenero: aluna.genero, treino }),
+      });
+      if (!res.ok) return null;
+      const data = (await res.json()) as { token: string };
+      return typeof window !== "undefined" ? `${window.location.origin}/ficha/${data.token}` : null;
+    } catch {
+      return null;
+    }
+  }, [state]);
 
   // --- item 1: "Adicionar aluna" ------------------------------------------
 
@@ -638,6 +739,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         treinos: [],
         idade: Number.isFinite(idadeNum) && idadeNum > 0 ? idadeNum : undefined,
         local: draft.local || undefined,
+        whatsapp: draft.whatsapp || "",
       };
       return { ...s, alunas: [...s.alunas.filter((a) => a.id !== id), newAluna] };
     });
@@ -692,7 +794,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Updates idade/local locally and best-effort persists to Postgres via
   // PATCH /api/alunas/[id] (item: printable ficha "DADOS DO ALUNO" fields).
-  const updateAlunaProfile = useCallback((id: string, patch: { idade?: number; local?: string }) => {
+  const updateAlunaProfile = useCallback((id: string, patch: { idade?: number; local?: string; whatsapp?: string }) => {
     setState((s) => ({ ...s, alunas: s.alunas.map((a) => (a.id === id ? { ...a, ...patch } : a)) }));
     fetch(`/api/alunas/${id}`, {
       method: "PATCH",
@@ -805,6 +907,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIniciarWeeklyTarget,
     navTo,
     syncTriagens,
+    setAlunaFilterObjetivo,
+    setAlunaFilterNivel,
+    setAlunaFilterVencido,
+    syncSettings,
+    updateSettings: updateSettingsApi,
+    createShareLink,
     openAddAluna,
     closeAddAluna,
     chooseAddAlunaMode,

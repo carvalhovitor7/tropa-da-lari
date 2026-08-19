@@ -69,6 +69,7 @@ function alunaFromRow(row: Row): AlunaRecord {
     treinos: [],
     idade: typeof row.idade === "number" ? row.idade : undefined,
     local: (row.local as string) || undefined,
+    whatsapp: (row.whatsapp as string) ?? "",
     screeningToken: row.screening_token as string,
   };
 }
@@ -110,6 +111,7 @@ export interface NewAlunaInput {
   genero?: Genero;
   idade?: number;
   local?: string;
+  whatsapp?: string;
 }
 
 // Used by POST /api/alunas — item 1 "Adicionar aluna". Covers both paths:
@@ -134,28 +136,41 @@ export async function createAluna(input: NewAlunaInput): Promise<AlunaRecord> {
   const idade = typeof input.idade === "number" && Number.isFinite(input.idade) ? input.idade : null;
 
   const { rows } = await sql`
-    INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, genero, has_treinos, screening_token, idade, local)
-    VALUES (${id}, ${name}, ${firstName}, ${initials}, ${input.goal ?? ""}, ${input.freq ?? ""}, ${""}, ${input.level ?? ""}, ${input.notes ?? ""}, ${input.instagram ?? ""}, ${genero}, FALSE, ${token}, ${idade}, ${input.local ?? ""})
+    INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, genero, has_treinos, screening_token, idade, local, whatsapp)
+    VALUES (${id}, ${name}, ${firstName}, ${initials}, ${input.goal ?? ""}, ${input.freq ?? ""}, ${""}, ${input.level ?? ""}, ${input.notes ?? ""}, ${input.instagram ?? ""}, ${genero}, FALSE, ${token}, ${idade}, ${input.local ?? ""}, ${input.whatsapp ?? ""})
     RETURNING *
   `;
   return alunaFromRow(rows[0]);
 }
 
-// Used by PATCH /api/alunas/[id] — lets Larissa edit idade/local (and
-// instagram, already handled client-side/locally) from Perfil.tsx.
+// Used by PATCH /api/alunas/[id] — lets Larissa edit idade/local/whatsapp
+// (and instagram, already handled client-side/locally) from Perfil.tsx.
 export async function updateAluna(
   id: string,
-  patch: { idade?: number | null; local?: string }
+  patch: { idade?: number | null; local?: string; whatsapp?: string }
 ): Promise<AlunaRecord | null> {
   const { rows } = await sql`
     UPDATE alunas SET
       idade = COALESCE(${patch.idade ?? null}, idade),
-      local = COALESCE(${patch.local ?? null}, local)
+      local = COALESCE(${patch.local ?? null}, local),
+      whatsapp = COALESCE(${patch.whatsapp ?? null}, whatsapp)
     WHERE id = ${id}
     RETURNING *
   `;
   if (rows.length === 0) return null;
   return alunaFromRow(rows[0]);
+}
+
+// Used by POST /api/triagem/[token] — item 8: lets a student fill in her
+// own WhatsApp number as part of the standalone screening flow, landing it
+// on her profile the same way the rest of the triagem data does. Only
+// updates the column when a non-empty value is provided, so resubmitting
+// the triagem without touching this field never blanks out a number
+// Larissa may have entered manually.
+export async function updateAlunaWhatsappByToken(token: string, whatsapp: string): Promise<void> {
+  const trimmed = whatsapp.trim();
+  if (!trimmed) return;
+  await sql`UPDATE alunas SET whatsapp = ${trimmed} WHERE screening_token = ${token}`;
 }
 
 // Used by DELETE /api/alunas/[id] — item "Excluir aluno". Deleting the row

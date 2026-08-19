@@ -34,6 +34,8 @@ export function Perfil() {
   const [idadeDraft, setIdadeDraft] = useState(aluna.idade ? String(aluna.idade) : "");
   const [editingLocal, setEditingLocal] = useState(false);
   const [localDraft, setLocalDraft] = useState(aluna.local || "");
+  const [editingWhatsapp, setEditingWhatsapp] = useState(false);
+  const [whatsappDraft, setWhatsappDraft] = useState(aluna.whatsapp || "");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -77,6 +79,12 @@ export function Perfil() {
     updateAlunaProfile(aluna.id, { local: localDraft.trim() });
     setEditingLocal(false);
     toast("Local de treino atualizado.");
+  };
+
+  const saveWhatsapp = () => {
+    updateAlunaProfile(aluna.id, { whatsapp: whatsappDraft.trim() });
+    setEditingWhatsapp(false);
+    toast("WhatsApp atualizado.");
   };
 
   const noun = alunoNoun(aluna.genero);
@@ -145,6 +153,35 @@ export function Perfil() {
             className="mt-1 text-sm text-ink font-semibold bg-transparent border-none cursor-pointer p-0 block"
           >
             {aluna.instagram ? `@${aluna.instagram}` : <span className="text-ink-soft font-normal">+ adicionar @</span>}
+          </button>
+        )}
+      </div>
+
+      <div className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.18)" }}>
+        <div className="text-[11px] text-ink-softer font-bold uppercase tracking-wide">WhatsApp</div>
+        {editingWhatsapp ? (
+          <div className="mt-1.5 flex items-center gap-2">
+            <input
+              autoFocus
+              value={whatsappDraft}
+              onChange={(e) => setWhatsappDraft(e.target.value)}
+              placeholder="ex: 11 91234-5678"
+              inputMode="tel"
+              className="flex-1 text-sm text-ink outline-none border-b border-border pb-1"
+            />
+            <button onClick={saveWhatsapp} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none">
+              Salvar
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              setWhatsappDraft(aluna.whatsapp || "");
+              setEditingWhatsapp(true);
+            }}
+            className="mt-1 text-sm text-ink font-semibold bg-transparent border-none cursor-pointer p-0 block"
+          >
+            {aluna.whatsapp || <span className="text-ink-soft font-normal">+ adicionar número</span>}
           </button>
         )}
       </div>

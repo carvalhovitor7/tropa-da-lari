@@ -5,7 +5,7 @@ import { currentAluna, useApp } from "@/lib/store";
 import { shareStoryCard } from "@/lib/storyImage";
 
 export function Finalizado() {
-  const { state, goTo, navTo, markSent, toast } = useApp();
+  const { state, goTo, navTo, markSent, toast, createShareLink } = useApp();
   const aluna = currentAluna(state);
   const [sharingStory, setSharingStory] = useState(false);
 
@@ -27,6 +27,7 @@ export function Finalizado() {
         exerciseCount: state.exercises.length,
       });
       markSent();
+      void createShareLink();
       if (result.via === "share") {
         toast("Compartilhado! Escolha o Instagram no menu para postar no Story.");
       } else {
@@ -41,6 +42,7 @@ export function Finalizado() {
 
   const salvarFinalizar = () => {
     markSent();
+    void createShareLink();
     navTo("perfil");
   };
 

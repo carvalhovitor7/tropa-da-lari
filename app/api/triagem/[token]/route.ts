@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAlunaByToken, submitScreening } from "@/lib/triagemService";
+import { getAlunaByToken, submitScreening, updateAlunaWhatsappByToken } from "@/lib/triagemService";
 import { TriagemDraft } from "@/lib/types";
 
 // Talks to Postgres on every request — must never be statically generated.
@@ -38,8 +38,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   }
 
   try {
-    const ok = await submitScreening(token, body as TriagemDraft);
+    const { whatsapp, ...draft } = body as TriagemDraft & { whatsapp?: string };
+    const ok = await submitScreening(token, draft as TriagemDraft);
     if (!ok) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    if (typeof whatsapp === "string") await updateAlunaWhatsappByToken(token, whatsapp);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[api/triagem/:token] POST failed", err);

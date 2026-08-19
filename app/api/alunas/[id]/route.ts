@@ -28,9 +28,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
-  const input = (body ?? {}) as { idade?: number; local?: string };
+  const input = (body ?? {}) as { idade?: number; local?: string; whatsapp?: string };
   try {
-    const aluna = await updateAluna(id, { idade: input.idade ?? null, local: input.local });
+    const aluna = await updateAluna(id, { idade: input.idade ?? null, local: input.local, whatsapp: input.whatsapp });
     if (!aluna) return NextResponse.json({ error: "not_found" }, { status: 404 });
     return NextResponse.json({ aluna });
   } catch (err) {

@@ -64,6 +64,7 @@ function initialState(): AppState {
     alunaFilterObjetivo: null,
     alunaFilterNivel: null,
     alunaFilterVencido: false,
+    alunaFilterFoco: null,
   };
 }
 
@@ -120,6 +121,13 @@ interface AppApi {
   editExercise: (ex: Exercise) => void;
   duplicateExercise: (ex: Exercise) => void;
   deleteExercise: (id: string) => void;
+  // Moves the exercise currently at `from` to index `to`, preserving the
+  // rest of the order — backs the Montador drag-to-reorder interaction.
+  // This is the single source of truth for exercise order: Revisão and the
+  // PDF both just render state.exercises directly, and approve() copies
+  // s.exercises verbatim into the saved Treino, so whatever order lands
+  // here is exactly what shows up downstream.
+  moveExercise: (from: number, to: number) => void;
   addToTreino: () => void;
   approve: () => void;
   markSent: () => void;
@@ -143,6 +151,7 @@ interface AppApi {
   setAlunaFilterObjetivo: (v: string | null) => void;
   setAlunaFilterNivel: (v: string | null) => void;
   setAlunaFilterVencido: (v: boolean) => void;
+  setAlunaFilterFoco: (v: string | null) => void;
   // items 5/6: settings (renewal threshold, PIX key).
   syncSettings: () => void;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
@@ -364,6 +373,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const deleteExercise = useCallback((id: string) => {
     setState((s) => ({ ...s, exercises: s.exercises.filter((e) => e.id !== id) }));
+  }, []);
+
+  const moveExercise = useCallback((from: number, to: number) => {
+    setState((s) => {
+      if (from === to || from < 0 || to < 0 || from >= s.exercises.length || to >= s.exercises.length) return s;
+      const next = [...s.exercises];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return { ...s, exercises: next };
+    });
   }, []);
 
   const addToTreino = useCallback(() => {
@@ -620,6 +639,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setAlunaFilterObjetivo = useCallback((v: string | null) => setState((s) => ({ ...s, alunaFilterObjetivo: v })), []);
   const setAlunaFilterNivel = useCallback((v: string | null) => setState((s) => ({ ...s, alunaFilterNivel: v })), []);
   const setAlunaFilterVencido = useCallback((v: boolean) => setState((s) => ({ ...s, alunaFilterVencido: v })), []);
+  const setAlunaFilterFoco = useCallback((v: string | null) => setState((s) => ({ ...s, alunaFilterFoco: v })), []);
 
   // items 5/6: settings (renewal threshold, PIX key) — fetched from
   // Postgres so the "Treino vencido" filter (item 4), the Acompanhamento
@@ -889,6 +909,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     editExercise,
     duplicateExercise,
     deleteExercise,
+    moveExercise,
     addToTreino,
     approve,
     markSent,
@@ -911,6 +932,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setAlunaFilterObjetivo,
     setAlunaFilterNivel,
     setAlunaFilterVencido,
+    setAlunaFilterFoco,
     syncSettings,
     updateSettings: updateSettingsApi,
     createShareLink,

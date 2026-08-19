@@ -319,4 +319,8 @@ export interface AppState {
   alunaFilterObjetivo: string | null;
   alunaFilterNivel: string | null;
   alunaFilterVencido: boolean;
+  // Filters alunos by the `foco` of any of their treinos (e.g. "Inferiores",
+  // "Superiores", "Corpo inteiro"), reusing the same FOCOS option list used
+  // when starting a new treino (lib/data.ts).
+  alunaFilterFoco: string | null;
 }

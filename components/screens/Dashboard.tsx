@@ -48,6 +48,41 @@ export function Dashboard() {
     .sort((a, b) => b.n - a.n)
     .slice(0, 3);
 
+  // Objetivo breakdown (item: Dashboard pie/donut) — grouped by the aluno's
+  // raw `goal` text since that's the only objetivo field alunas actually
+  // carry today (free text, not constrained to the OBJETIVOS option list).
+  // A coherent set of purple/violet tints/shades from the brand palette,
+  // reused (not reinvented) — same family as the terracotta/sage tokens
+  // used everywhere else in the app.
+  const OBJETIVO_COLORS = ["#4C3A9E", "#7C4DBD", "#9B7FD4", "#5B4E9E", "#C9A0E8", "#6E5FA8", "#8B6FCB"];
+  const NAO_INFORMADO_COLOR = "#E4DAF6"; // matches --color-border, the app's neutral tint
+  const objetivoCounts = new Map<string, number>();
+  for (const a of state.alunas) {
+    const key = a.goal.trim() || "Não informado";
+    objetivoCounts.set(key, (objetivoCounts.get(key) ?? 0) + 1);
+  }
+  const objetivoEntriesSorted = Array.from(objetivoCounts.entries()).sort((a, b) => b[1] - a[1]);
+  const objetivoOtherEntries = objetivoEntriesSorted.filter(([label]) => label !== "Não informado");
+  const objetivoSegments = objetivoEntriesSorted.map(([label, n]) => {
+    const color =
+      label === "Não informado"
+        ? NAO_INFORMADO_COLOR
+        : OBJETIVO_COLORS[objetivoOtherEntries.findIndex(([l]) => l === label) % OBJETIVO_COLORS.length];
+    return { label, n, color };
+  });
+  const objetivoStops = objetivoSegments
+    .reduce<{ acc: number; parts: string[] }>(
+      (memo, seg, i) => {
+        const start = memo.acc;
+        const isLast = i === objetivoSegments.length - 1;
+        const acc = memo.acc + (seg.n / totalAlunos) * 360;
+        const end = isLast ? 360 : acc;
+        return { acc, parts: [...memo.parts, `${seg.color} ${start}deg ${end}deg`] };
+      },
+      { acc: 0, parts: [] }
+    )
+    .parts.join(", ");
+
   return (
     <div className="px-5 pt-5.5 pb-24 flex flex-col gap-6.5">
       <div className="flex items-center gap-3.5">
@@ -159,6 +194,33 @@ export function Dashboard() {
                     {f.label} · {f.n}
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {objetivoSegments.length > 0 && (
+            <div>
+              <div className="text-xs font-bold text-ink-soft mb-2">Objetivo</div>
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: `conic-gradient(${objetivoStops})` }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[11px] font-extrabold text-ink">
+                    {objetivoSegments.length}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  {objetivoSegments.map((seg) => (
+                    <div key={seg.label} className="flex items-center gap-1.5 text-[11px] text-ink-soft">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: seg.color }} />
+                      <span className="truncate">
+                        {Math.round((seg.n / totalAlunos) * 100)}% {seg.label}
+                      </span>
+                      <span className="text-ink-softer font-semibold shrink-0">({seg.n})</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

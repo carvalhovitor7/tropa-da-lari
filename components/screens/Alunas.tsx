@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useApp } from "@/lib/store";
-import { FREQUENCIAS, OBJETIVOS } from "@/lib/data";
+import { FOCOS, FREQUENCIAS, OBJETIVOS } from "@/lib/data";
 import { Chip } from "@/components/ui/Chip";
 import { Genero } from "@/lib/types";
 import { isAlunaVencida } from "@/lib/dates";
@@ -22,6 +22,7 @@ export function Alunas() {
     setAlunaFilterObjetivo,
     setAlunaFilterNivel,
     setAlunaFilterVencido,
+    setAlunaFilterFoco,
   } = useApp();
 
   const objetivosPresentes = useMemo(
@@ -29,12 +30,21 @@ export function Alunas() {
     [state.alunas]
   );
   const niveisPresentes = useMemo(() => Array.from(new Set(state.alunas.map((a) => a.level).filter(Boolean))), [state.alunas]);
+  // "Tipo de treino": the set of `foco` values actually used across any
+  // treino of any aluna, ordered to match the FOCOS list used in
+  // Iniciar.tsx so the chip order stays predictable rather than
+  // alphabetical/insertion-order.
+  const focosPresentes = useMemo(() => {
+    const present = new Set(state.alunas.flatMap((a) => a.treinos.map((t) => t.foco).filter(Boolean)));
+    return FOCOS.filter((f) => present.has(f));
+  }, [state.alunas]);
 
   const filtered = state.alunas.filter((a) => {
     if (!a.name.toLowerCase().includes(state.alunaSearch.toLowerCase())) return false;
     if (state.alunaFilterObjetivo && a.goal !== state.alunaFilterObjetivo) return false;
     if (state.alunaFilterNivel && a.level !== state.alunaFilterNivel) return false;
     if (state.alunaFilterVencido && !isAlunaVencida(a.treinos, state.settings.renewalWeeks)) return false;
+    if (state.alunaFilterFoco && !a.treinos.some((t) => t.foco === state.alunaFilterFoco)) return false;
     return true;
   });
   const [copied, setCopied] = useState(false);
@@ -74,25 +84,54 @@ export function Alunas() {
         className="w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
       />
 
-      {(objetivosPresentes.length > 0 || niveisPresentes.length > 0) && (
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            <Chip label="Treino vencido" small active={state.alunaFilterVencido} onClick={() => setAlunaFilterVencido(!state.alunaFilterVencido)} />
-            {niveisPresentes.map((n) => (
-              <Chip key={n} label={n} small active={state.alunaFilterNivel === n} onClick={() => setAlunaFilterNivel(state.alunaFilterNivel === n ? null : n)} />
-            ))}
-          </div>
-          {objetivosPresentes.length > 0 && (
+      {(objetivosPresentes.length > 0 || niveisPresentes.length > 0 || focosPresentes.length > 0) && (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[11px] font-bold text-ink-softer uppercase tracking-wide">Status</div>
             <div className="flex gap-2 overflow-x-auto pb-1">
-              {objetivosPresentes.map((o) => (
-                <Chip
-                  key={o}
-                  label={o}
-                  small
-                  active={state.alunaFilterObjetivo === o}
-                  onClick={() => setAlunaFilterObjetivo(state.alunaFilterObjetivo === o ? null : o)}
-                />
-              ))}
+              <Chip label="Treino vencido" small active={state.alunaFilterVencido} onClick={() => setAlunaFilterVencido(!state.alunaFilterVencido)} />
+            </div>
+          </div>
+          {niveisPresentes.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <div className="text-[11px] font-bold text-ink-softer uppercase tracking-wide">Nível</div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {niveisPresentes.map((n) => (
+                  <Chip key={n} label={n} small active={state.alunaFilterNivel === n} onClick={() => setAlunaFilterNivel(state.alunaFilterNivel === n ? null : n)} />
+                ))}
+              </div>
+            </div>
+          )}
+          {objetivosPresentes.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <div className="text-[11px] font-bold text-ink-softer uppercase tracking-wide">Objetivo</div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {objetivosPresentes.map((o) => (
+                  <Chip
+                    key={o}
+                    label={o}
+                    small
+                    active={state.alunaFilterObjetivo === o}
+                    onClick={() => setAlunaFilterObjetivo(state.alunaFilterObjetivo === o ? null : o)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          {focosPresentes.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <div className="text-[11px] font-bold text-ink-softer uppercase tracking-wide">Tipo de treino</div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {focosPresentes.map((f) => (
+                  <Chip
+                    key={f}
+                    label={f}
+                    small
+                    active={state.alunaFilterFoco === f}
+                    onClick={() => setAlunaFilterFoco(state.alunaFilterFoco === f ? null : f)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

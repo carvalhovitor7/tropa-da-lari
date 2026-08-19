@@ -14,7 +14,7 @@ export function Chip({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center justify-center rounded-full font-semibold cursor-pointer border transition-colors min-h-11 ${
+      className={`inline-flex items-center justify-center rounded-full font-semibold cursor-pointer border transition-colors min-h-11 shrink-0 whitespace-nowrap ${
         small ? "px-3.5 text-xs" : "px-3.5 text-[13px]"
       } ${active ? "bg-terracotta-strong border-terracotta-strong text-white" : "bg-white border-border text-ink"}`}
     >

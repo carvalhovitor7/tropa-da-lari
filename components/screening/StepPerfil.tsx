@@ -1,12 +1,11 @@
 "use client";
 
 import { EXPERIENCIAS, FREQUENCIAS, OBJETIVOS, TEMPOS } from "@/lib/data";
-import { useApp } from "@/lib/store";
+import { useTriagemForm } from "@/lib/triagemForm";
 import { Chip } from "@/components/ui/Chip";
 
 export function StepPerfil() {
-  const { state, toggleArr, setDraft } = useApp();
-  const d = state.triagemDraft;
+  const { draft: d, toggleArr, setDraft } = useTriagemForm();
 
   return (
     <div className="px-5 pt-3.5 pb-8 flex flex-col gap-5.5">

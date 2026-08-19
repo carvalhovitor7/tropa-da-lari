@@ -1,13 +1,12 @@
 "use client";
 
 import { ACOMPANHAMENTOS, ORIENTACOES } from "@/lib/data";
-import { useApp } from "@/lib/store";
+import { useTriagemForm } from "@/lib/triagemForm";
 import { Chip } from "@/components/ui/Chip";
 import { YesNo } from "./YesNo";
 
 export function StepAcompanhamento() {
-  const { state, setDraft } = useApp();
-  const d = state.triagemDraft;
+  const { draft: d, setDraft } = useTriagemForm();
   const showOrientacao = !!d.acompanhamento && d.acompanhamento !== "Não";
 
   return (

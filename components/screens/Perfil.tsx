@@ -1,14 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { currentAluna, useApp } from "@/lib/store";
 import { computeAlert, computeWarnings } from "@/lib/screening";
 
 export function Perfil() {
-  const { state, onFazerTriagem, onVerTriagem, onNovoTreino, onDuplicarAnterior, onUsarModelo, openTreino } = useApp();
+  const { state, onFazerTriagem, onVerTriagem, onNovoTreino, onDuplicarAnterior, onUsarModelo, openTreino, syncTriagens, toast } = useApp();
   const aluna = currentAluna(state);
   const triagem = state.triagens[aluna.id];
   const alert = computeAlert(triagem);
   const warnings = computeWarnings(triagem);
+  const [copying, setCopying] = useState(false);
+
+  // Pull any triagem submitted from the student's own phone since we last
+  // loaded this profile.
+  useEffect(() => {
+    syncTriagens();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per profile visit
+  }, [aluna.id]);
+
+  const copyLink = async () => {
+    setCopying(true);
+    try {
+      const res = await fetch(`/api/alunas/${aluna.id}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("not_found");
+      const data = (await res.json()) as { aluna: { screeningToken: string } };
+      const url = `${window.location.origin}/triagem/${data.aluna.screeningToken}`;
+      await navigator.clipboard.writeText(url);
+      toast("Link copiado.");
+    } catch {
+      toast("Não foi possível gerar o link agora.");
+    } finally {
+      setCopying(false);
+    }
+  };
 
   return (
     <div className="px-5 pt-2 pb-24 flex flex-col gap-5.5">
@@ -58,22 +83,31 @@ export function Perfil() {
           <span className="text-xs font-bold text-terracotta shrink-0">Ver tudo</span>
         </button>
       ) : (
-        <button
-          onClick={onFazerTriagem}
-          className="text-left bg-white rounded-2xl p-3.5 flex items-center gap-2.5 cursor-pointer"
-          style={{ border: "1.5px dashed #BC6B52" }}
-        >
-          <div className="w-9 h-9 rounded-full bg-terracotta-pill flex items-center justify-center shrink-0">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 11l3 3L22 4" />
-              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <div className="text-[13px] font-bold text-ink">Fazer triagem de {aluna.firstName}</div>
-            <div className="text-xs text-ink-soft mt-0.5">Antes do primeiro treino, 3–5 min.</div>
-          </div>
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={copyLink}
+            disabled={copying}
+            className="text-left bg-white rounded-2xl p-3.5 flex items-center gap-2.5 cursor-pointer disabled:opacity-60"
+            style={{ border: "1.5px dashed #BC6B52" }}
+          >
+            <div className="w-9 h-9 rounded-full bg-terracotta-pill flex items-center justify-center shrink-0">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 007 0l2-2a5 5 0 00-7-7l-1 1" />
+                <path d="M14 11a5 5 0 00-7 0l-2 2a5 5 0 007 7l1-1" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="text-[13px] font-bold text-ink">Copiar link de triagem de {aluna.firstName}</div>
+              <div className="text-xs text-ink-soft mt-0.5">Ela preenche pelo próprio celular, 3–5 min.</div>
+            </div>
+          </button>
+          <button
+            onClick={onFazerTriagem}
+            className="text-left bg-transparent border-none px-3.5 py-1 text-xs font-semibold text-ink-soft cursor-pointer self-start"
+          >
+            ou preencher com ela agora
+          </button>
+        </div>
       )}
 
       <div>

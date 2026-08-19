@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ALUNAS, DEMO_EXERCISES, TRIAGENS_SEED } from "./data";
-import { AppState, Exercise, ScreenKey, TRIAGEM_STEPS, Treino, emptyDraft } from "./types";
+import { AppState, Exercise, ScreenKey, TRIAGEM_STEPS, Treino, TriagemDraft, emptyDraft } from "./types";
+import { TriagemFormApi, TriagemFormContext } from "./triagemForm";
 
 const STORAGE_KEY = "tropa-da-lari-state-v1";
 
@@ -78,6 +79,7 @@ interface AppApi {
   setIniciarNome: (v: string) => void;
   setIniciarFoco: (v: string) => void;
   navTo: (screen: ScreenKey) => void;
+  syncTriagens: () => void;
 }
 
 const AppContext = createContext<AppApi | null>(null);
@@ -325,6 +327,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setIniciarNome = useCallback((v: string) => setState((s) => ({ ...s, iniciarNome: v })), []);
   const setIniciarFoco = useCallback((v: string) => setState((s) => ({ ...s, iniciarFoco: v })), []);
 
+  // Pulls the latest screening answers from Postgres (via /api/alunas) and
+  // merges them into local state. This is how a triagem submitted by a
+  // student on her own phone (see app/triagem/[token]) shows up in
+  // Larissa's app: called on mount from Dashboard and Perfil. Silently
+  // no-ops if the API/DB isn't reachable (e.g. no local Postgres configured)
+  // so it never blocks the rest of the app.
+  const syncTriagens = useCallback(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/alunas", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          alunas: { aluna: { id: string }; triagem: TriagemDraft | null }[];
+        };
+        if (cancelled || !Array.isArray(data.alunas)) return;
+        setState((s) => {
+          const triagens = { ...s.triagens };
+          for (const entry of data.alunas) {
+            if (entry.triagem) triagens[entry.aluna.id] = entry.triagem;
+          }
+          return { ...s, triagens };
+        });
+      } catch {
+        // offline / no DB configured yet — local seed data stays as-is
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const api: AppApi = {
     state,
     goTo,
@@ -359,9 +393,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIniciarNome,
     setIniciarFoco,
     navTo,
+    syncTriagens,
   };
 
-  return <AppContext.Provider value={api}>{children}</AppContext.Provider>;
+  const triagemFormApi: TriagemFormApi = useMemo(
+    () => ({ draft: state.triagemDraft, toggleArr, setDraft, setIntensidade }),
+    [state.triagemDraft, toggleArr, setDraft, setIntensidade]
+  );
+
+  return (
+    <AppContext.Provider value={api}>
+      <TriagemFormContext.Provider value={triagemFormApi}>{children}</TriagemFormContext.Provider>
+    </AppContext.Provider>
+  );
 }
 
 export function useApp() {

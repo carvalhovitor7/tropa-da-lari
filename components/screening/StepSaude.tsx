@@ -1,11 +1,10 @@
 "use client";
 
 import { SAUDE_CONDICOES } from "@/lib/data";
-import { useApp } from "@/lib/store";
+import { useTriagemForm } from "@/lib/triagemForm";
 
 export function StepSaude() {
-  const { state, toggleArr } = useApp();
-  const d = state.triagemDraft;
+  const { draft: d, toggleArr } = useTriagemForm();
 
   return (
     <div className="px-5 pt-3.5 pb-8 flex flex-col gap-4.5">

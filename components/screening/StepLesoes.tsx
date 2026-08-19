@@ -1,13 +1,12 @@
 "use client";
 
 import { LESAO_TIPOS, QUANDO_TEMPO, SINTOMAS } from "@/lib/data";
-import { useApp } from "@/lib/store";
+import { useTriagemForm } from "@/lib/triagemForm";
 import { Chip } from "@/components/ui/Chip";
 import { YesNo } from "./YesNo";
 
 export function StepLesoes() {
-  const { state, setDraft } = useApp();
-  const d = state.triagemDraft;
+  const { draft: d, setDraft } = useTriagemForm();
 
   return (
     <div className="px-5 pt-3.5 pb-8 flex flex-col gap-5.5">

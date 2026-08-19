@@ -1,11 +1,10 @@
 "use client";
 
-import { useApp } from "@/lib/store";
+import { useTriagemForm } from "@/lib/triagemForm";
 import { computeAlert } from "@/lib/screening";
 
 export function StepResumo() {
-  const { state } = useApp();
-  const d = state.triagemDraft;
+  const { draft: d } = useTriagemForm();
   const alert = computeAlert(d);
   const dorSel = d.dorRegioes || [];
   const hasAtencoes = dorSel.length > 0;

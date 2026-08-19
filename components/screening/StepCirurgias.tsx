@@ -1,13 +1,12 @@
 "use client";
 
 import { QUANDO_TEMPO } from "@/lib/data";
-import { useApp } from "@/lib/store";
+import { useTriagemForm } from "@/lib/triagemForm";
 import { Chip } from "@/components/ui/Chip";
 import { YesNo } from "./YesNo";
 
 export function StepCirurgias() {
-  const { state, setDraft } = useApp();
-  const d = state.triagemDraft;
+  const { draft: d, setDraft } = useTriagemForm();
 
   return (
     <div className="px-5 pt-3.5 pb-8 flex flex-col gap-5.5">

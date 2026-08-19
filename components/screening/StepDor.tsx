@@ -1,13 +1,12 @@
 "use client";
 
 import { MOVIMENTOS_LISTA, QUANDOS, REGIOES } from "@/lib/data";
-import { useApp } from "@/lib/store";
+import { useTriagemForm } from "@/lib/triagemForm";
 import { Chip } from "@/components/ui/Chip";
 import { YesNo } from "./YesNo";
 
 export function StepDor() {
-  const { state, toggleArr, setDraft, setIntensidade } = useApp();
-  const d = state.triagemDraft;
+  const { draft: d, toggleArr, setDraft, setIntensidade } = useTriagemForm();
   const dorSel = d.dorRegioes || [];
 
   return (

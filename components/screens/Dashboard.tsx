@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ALUNAS, useApp } from "@/lib/store";
 
 const RECENT_TREINOS = [
@@ -8,7 +9,12 @@ const RECENT_TREINOS = [
 ];
 
 export function Dashboard() {
-  const { navTo, openPerfil } = useApp();
+  const { navTo, openPerfil, syncTriagens } = useApp();
+
+  useEffect(() => {
+    syncTriagens();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
 
   return (
     <div className="px-5 pt-5.5 pb-24 flex flex-col gap-6.5">

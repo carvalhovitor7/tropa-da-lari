@@ -1,10 +1,12 @@
 "use client";
 
 import { currentAluna, useApp } from "@/lib/store";
+import { buildExerciseBlocks, restLabelFor } from "@/lib/conjugado";
 
 export function Revisao() {
   const { state, goTo, approve, setTreinoEnfase, setTreinoObsTreinadora } = useApp();
   const aluna = currentAluna(state);
+  const blocks = buildExerciseBlocks(state.exercises);
 
   return (
     <div className="px-5 pt-2 pb-28 flex flex-col gap-4.5">
@@ -49,21 +51,53 @@ export function Revisao() {
       )}
 
       <div className="flex flex-col gap-3">
-        {state.exercises.map((ex, i) => (
-          <div key={ex.id} className="flex gap-3">
-            <div className="w-6.5 h-6.5 rounded-full bg-sage-bg text-sage text-[13px] font-extrabold flex items-center justify-center shrink-0">
-              {i + 1}
-            </div>
-            <div>
-              <div className="text-[15px] font-bold text-ink">{ex.name}</div>
-              <div className="text-[13px] font-bold text-sage mt-0.5">
-                {ex.series} × {ex.reps}
-                {!!ex.carga && <span className="text-terracotta"> • {ex.carga}</span>}
-                <span className="text-ink-softer font-semibold"> • {ex.descanso}</span>
+        {blocks.map((block) => {
+          if (block.groupId === null) {
+            const { exercise: ex, label } = block.items[0];
+            return (
+              <div key={ex.id} className="flex gap-3">
+                <div className="w-6.5 h-6.5 rounded-full bg-sage-bg text-sage text-[13px] font-extrabold flex items-center justify-center shrink-0">
+                  {label}
+                </div>
+                <div>
+                  <div className="text-[15px] font-bold text-ink">{ex.name}</div>
+                  <div className="text-[13px] font-bold text-sage mt-0.5">
+                    {ex.series} × {ex.reps}
+                    {!!ex.carga && <span className="text-terracotta"> • {ex.carga}</span>}
+                    <span className="text-ink-softer font-semibold"> • {ex.descanso}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div key={block.groupId} className="rounded-2xl overflow-hidden" style={{ border: "1.5px solid #C9A0E8" }}>
+              <div className="text-[10px] font-extrabold text-terracotta uppercase tracking-wide px-3 pt-2 pb-1" style={{ background: "#F6F2FC" }}>
+                ⚡ Conjugado
+              </div>
+              <div className="bg-white flex flex-col gap-3 px-3 py-3">
+                {block.items.map(({ exercise: ex, label, isFirst, isLast }) => (
+                  <div key={ex.id} className="flex gap-3" style={isFirst ? undefined : { borderTop: "1px solid #E4DAF6", paddingTop: 12 }}>
+                    <div className="w-6.5 h-6.5 rounded-full text-[13px] font-extrabold flex items-center justify-center shrink-0" style={{ background: "#EDE1FA", color: "#7C4DBD" }}>
+                      {label}
+                    </div>
+                    <div>
+                      <div className="text-[15px] font-bold text-ink">{ex.name}</div>
+                      <div className="text-[13px] font-bold text-sage mt-0.5">
+                        {ex.series} × {ex.reps}
+                        {!!ex.carga && <span className="text-terracotta"> • {ex.carga}</span>}
+                        <span className="font-semibold" style={{ color: isLast ? undefined : "#7C4DBD" }}>
+                          {" "}
+                          • {restLabelFor(ex, isLast)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {state.exercises.length === 0 && <div className="text-sm text-ink-soft">Nenhum exercício adicionado ainda.</div>}
       </div>
 

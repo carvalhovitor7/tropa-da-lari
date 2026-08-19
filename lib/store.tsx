@@ -128,6 +128,12 @@ interface AppApi {
   // s.exercises verbatim into the saved Treino, so whatever order lands
   // here is exactly what shows up downstream.
   moveExercise: (from: number, to: number) => void;
+  // "Exercícios conjugados" (supersets): group 2+ exercises (by id) into a
+  // shared conjugado, remove one exercise from its group, or dissolve a
+  // whole group back into standalone exercises.
+  groupExercises: (ids: string[]) => void;
+  ungroupExercise: (id: string) => void;
+  dissolveGroup: (groupId: string) => void;
   addToTreino: () => void;
   approve: () => void;
   markSent: () => void;
@@ -365,14 +371,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const duplicateExercise = useCallback(
     (ex: Exercise) => {
-      setState((s) => ({ ...s, exercises: [...s.exercises, { ...ex, id: makeId() }] }));
+      // The duplicate is appended at the end of the list, not next to `ex`
+      // — so if `ex` belongs to a conjugado group it must NOT inherit
+      // conjugadoGroupId, or it'd violate the "group members are
+      // contiguous" invariant every other screen relies on. It's added as
+      // a standalone exercise instead.
+      setState((s) => ({ ...s, exercises: [...s.exercises, { ...ex, id: makeId(), conjugadoGroupId: undefined }] }));
       toast(ex.name + " duplicado.");
     },
     [toast]
   );
 
   const deleteExercise = useCallback((id: string) => {
-    setState((s) => ({ ...s, exercises: s.exercises.filter((e) => e.id !== id) }));
+    setState((s) => {
+      const removed = s.exercises.find((e) => e.id === id);
+      let exercises = s.exercises.filter((e) => e.id !== id);
+      // Deleting one member of a conjugado group can leave only one behind
+      // — a "group" of one doesn't make sense, so dissolve it too (same
+      // invariant enforced by ungroupExercise/moveExercise above).
+      const gid = removed?.conjugadoGroupId;
+      if (gid) {
+        const remaining = exercises.filter((e) => e.conjugadoGroupId === gid);
+        if (remaining.length === 1) {
+          exercises = exercises.map((e) => (e.conjugadoGroupId === gid ? { ...e, conjugadoGroupId: undefined } : e));
+        }
+      }
+      return { ...s, exercises };
+    });
   }, []);
 
   const moveExercise = useCallback((from: number, to: number) => {
@@ -381,8 +406,81 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const next = [...s.exercises];
       const [item] = next.splice(from, 1);
       next.splice(to, 0, item);
+
+      // "Exercícios conjugados": dragging one member of a group to a
+      // non-adjacent spot (i.e. the move breaks the group's contiguous
+      // run) auto-ungroups just that exercise, per the feature spec — we
+      // never let a group render split apart in the list. Runs on every
+      // incremental drag step (moveExercise fires per neighbor crossed),
+      // which is cheap on these small lists.
+      if (item.conjugadoGroupId) {
+        const gid = item.conjugadoGroupId;
+        const idxs: number[] = [];
+        next.forEach((e, i) => {
+          if (e.conjugadoGroupId === gid) idxs.push(i);
+        });
+        const contiguous = idxs.every((v, i) => i === 0 || v === idxs[i - 1] + 1);
+        if (!contiguous) {
+          const movedIdx = next.findIndex((e) => e.id === item.id);
+          if (movedIdx !== -1) next[movedIdx] = { ...next[movedIdx], conjugadoGroupId: undefined };
+          // A "group" of one exercise isn't a group — dissolve it too.
+          const remaining = next.filter((e) => e.conjugadoGroupId === gid);
+          if (remaining.length === 1) {
+            const soleIdx = next.findIndex((e) => e.conjugadoGroupId === gid);
+            if (soleIdx !== -1) next[soleIdx] = { ...next[soleIdx], conjugadoGroupId: undefined };
+          }
+        }
+      }
+
       return { ...s, exercises: next };
     });
+  }, []);
+
+  // Groups 2+ exercises (by id) into a new conjugado (superset) — moves
+  // them to be contiguous in state.exercises (inserted at the position of
+  // the earliest-selected one, preserving their relative order and the
+  // relative order of everything else) and stamps them all with a shared
+  // conjugadoGroupId. Contiguity here is what lets every downstream reader
+  // (Montador/Revisao/Pdf via lib/conjugado.ts, and moveExercise above)
+  // treat "same conjugadoGroupId" and "adjacent run" as equivalent.
+  const groupExercises = useCallback((ids: string[]) => {
+    setState((s) => {
+      if (ids.length < 2) return s;
+      const selected = new Set(ids);
+      const firstIdx = s.exercises.findIndex((e) => selected.has(e.id));
+      if (firstIdx === -1) return s;
+      const groupId = makeId();
+      const rest = s.exercises.filter((e) => !selected.has(e.id));
+      const insertAt = s.exercises.slice(0, firstIdx).filter((e) => !selected.has(e.id)).length;
+      const grouped = s.exercises.filter((e) => selected.has(e.id)).map((e) => ({ ...e, conjugadoGroupId: groupId }));
+      const next = [...rest.slice(0, insertAt), ...grouped, ...rest.slice(insertAt)];
+      return { ...s, exercises: next };
+    });
+  }, []);
+
+  // Removes a single exercise from its conjugado group, leaving the rest of
+  // the group intact — unless that leaves only one member, in which case a
+  // "group" of one no longer makes sense and it's dissolved too.
+  const ungroupExercise = useCallback((id: string) => {
+    setState((s) => {
+      const ex = s.exercises.find((e) => e.id === id);
+      const gid = ex?.conjugadoGroupId;
+      if (!gid) return s;
+      let next = s.exercises.map((e) => (e.id === id ? { ...e, conjugadoGroupId: undefined } : e));
+      const remaining = next.filter((e) => e.conjugadoGroupId === gid);
+      if (remaining.length === 1) {
+        next = next.map((e) => (e.conjugadoGroupId === gid ? { ...e, conjugadoGroupId: undefined } : e));
+      }
+      return { ...s, exercises: next };
+    });
+  }, []);
+
+  // Dissolves an entire conjugado group back into standalone exercises.
+  const dissolveGroup = useCallback((groupId: string) => {
+    setState((s) => ({
+      ...s,
+      exercises: s.exercises.map((e) => (e.conjugadoGroupId === groupId ? { ...e, conjugadoGroupId: undefined } : e)),
+    }));
   }, []);
 
   const addToTreino = useCallback(() => {
@@ -910,6 +1008,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     duplicateExercise,
     deleteExercise,
     moveExercise,
+    groupExercises,
+    ungroupExercise,
+    dissolveGroup,
     addToTreino,
     approve,
     markSent,

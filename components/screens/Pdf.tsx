@@ -5,6 +5,7 @@ import { currentAluna, useApp } from "@/lib/store";
 import { alunoNoun } from "@/lib/gender";
 import { treinoLetterFor } from "@/lib/dates";
 import { summarizeRestricoes } from "@/lib/screening";
+import { buildExerciseBlocks, restLabelFor } from "@/lib/conjugado";
 
 function FieldIcon({ path }: { path: string }) {
   return (
@@ -45,6 +46,7 @@ export function Pdf() {
   const foco = (state.treinoFoco || "Treino").toUpperCase();
   const enfase = state.treinoEnfase?.trim();
   const restricoes = summarizeRestricoes(triagem);
+  const blocks = buildExerciseBlocks(state.exercises);
 
   const fields: [string, string, keyof typeof ICONS][] = [
     ["Nome", aluna.name, "nome"],
@@ -130,54 +132,73 @@ export function Pdf() {
             <span>Descanso</span>
             <span>Obs. técnica</span>
           </div>
-          {state.exercises.map((ex, i) => (
-            <div
-              key={ex.id}
-              className="px-3 py-2.5 text-[11px] text-ink flex flex-col gap-1.5"
-              style={{ background: i % 2 === 0 ? "#FFFFFF" : "#F6F2FC", borderTop: "1px solid #E4DAF6" }}
-            >
-              <div className="flex items-start gap-2">
-                <span
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold text-white shrink-0 mt-0.5"
+          {blocks.map((block, bi) => {
+            const isGroup = block.groupId !== null;
+            const rowBg = bi % 2 === 0 ? "#FFFFFF" : "#F6F2FC";
+            const rows = block.items.map(({ exercise: ex, label, isFirst, isLast }) => (
+              <div
+                key={ex.id}
+                className="px-3 py-2.5 text-[11px] text-ink flex flex-col gap-1.5"
+                style={{
+                  background: rowBg,
+                  borderTop: isFirst ? "1px solid #E4DAF6" : isGroup ? "1px dashed #D8C6EF" : "1px solid #E4DAF6",
+                }}
+              >
+                <div className="flex items-start gap-2">
+                  <span
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold text-white shrink-0 mt-0.5"
+                    style={{ background: "#7C4DBD" }}
+                  >
+                    {label}
+                  </span>
+                  <span className="font-bold leading-snug">{ex.name}</span>
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 ml-7 text-[10.5px]">
+                  <span>
+                    <span className="text-ink-softer">Séries </span>
+                    <b>{ex.series}</b>
+                  </span>
+                  <span>
+                    <span className="text-ink-softer">Reps </span>
+                    <b>{ex.reps}</b>
+                  </span>
+                  {!!ex.carga && (
+                    <span>
+                      <span className="text-ink-softer">Carga </span>
+                      <b className="text-terracotta">{ex.carga}</b>
+                    </span>
+                  )}
+                  <span>
+                    <span className="text-ink-softer">Descanso </span>
+                    <b style={isGroup && !isLast ? { color: "#7C4DBD" } : undefined}>{restLabelFor(ex, isLast)}</b>
+                  </span>
+                </div>
+                {ex.obs && <div className="ml-7 text-[10.5px] text-ink-softer italic leading-snug">{ex.obs}</div>}
+                {ex.videoUrl && (
+                  <a
+                    href={ex.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-7 inline-flex items-center gap-1 text-[10.5px] font-bold text-terracotta no-underline w-fit"
+                  >
+                    ▶ Ver execução
+                  </a>
+                )}
+              </div>
+            ));
+            if (!isGroup) return rows;
+            return (
+              <div key={block.groupId} className="relative" style={{ borderLeft: "3px solid #7C4DBD" }}>
+                <div
+                  className="absolute top-1.5 right-2 text-white text-[8.5px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full z-10"
                   style={{ background: "#7C4DBD" }}
                 >
-                  {i + 1}
-                </span>
-                <span className="font-bold leading-snug">{ex.name}</span>
+                  ⚡ Conjugado
+                </div>
+                {rows}
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 ml-7 text-[10.5px]">
-                <span>
-                  <span className="text-ink-softer">Séries </span>
-                  <b>{ex.series}</b>
-                </span>
-                <span>
-                  <span className="text-ink-softer">Reps </span>
-                  <b>{ex.reps}</b>
-                </span>
-                {!!ex.carga && (
-                  <span>
-                    <span className="text-ink-softer">Carga </span>
-                    <b className="text-terracotta">{ex.carga}</b>
-                  </span>
-                )}
-                <span>
-                  <span className="text-ink-softer">Descanso </span>
-                  <b>{ex.descanso}</b>
-                </span>
-              </div>
-              {ex.obs && <div className="ml-7 text-[10.5px] text-ink-softer italic leading-snug">{ex.obs}</div>}
-              {ex.videoUrl && (
-                <a
-                  href={ex.videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-7 inline-flex items-center gap-1 text-[10.5px] font-bold text-terracotta no-underline w-fit"
-                >
-                  ▶ Ver execução
-                </a>
-              )}
-            </div>
-          ))}
+            );
+          })}
           {state.exercises.length === 0 && (
             <div className="px-3 py-4 text-center text-[12px] text-ink-soft" style={{ borderTop: "1px solid #E4DAF6" }}>
               Nenhum exercício adicionado ainda.

@@ -47,6 +47,16 @@ export interface Exercise {
   // "▶ Ver execução" link in the builder and as a clickable link on the
   // printable ficha (item: YouTube links per exercise).
   videoUrl?: string;
+  // "Exercícios conjugados" (superset/bi-set/tri-set): every exercise that
+  // shares this id is performed back-to-back with no rest in between, with
+  // rest only happening after the group's last exercise. undefined/absent
+  // means a standalone exercise. Exercises sharing a conjugadoGroupId are
+  // expected to be contiguous within Treino.exercises / AppState.exercises
+  // — see lib/store.tsx groupExercises/moveExercise, which maintain that
+  // invariant — and lib/conjugado.ts, which every screen that renders the
+  // exercise list (Montador/Revisao/Pdf) uses to turn contiguous runs into
+  // bracketed groups with "3a"/"3b"-style numbering.
+  conjugadoGroupId?: string;
 }
 
 // A weekly total-rep emphasis target for a muscle group, independent of the

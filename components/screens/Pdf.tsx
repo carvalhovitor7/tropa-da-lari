@@ -1,6 +1,7 @@
 "use client";
 
 import { currentAluna, useApp } from "@/lib/store";
+import { alunoNoun } from "@/lib/gender";
 
 export function Pdf() {
   const { state, goTo } = useApp();
@@ -15,7 +16,7 @@ export function Pdf() {
         </div>
         <div className="flex justify-between text-xs">
           <div>
-            <div className="text-ink-softer">Aluna</div>
+            <div className="text-ink-softer">{alunoNoun(aluna.genero) === "aluna" ? "Aluna" : "Aluno"}</div>
             <div className="font-bold text-ink">{aluna.name}</div>
           </div>
           <div>

@@ -21,6 +21,12 @@ CREATE TABLE IF NOT EXISTS alunas (
 -- safe to re-run against a database that already has the alunas table.
 ALTER TABLE alunas ADD COLUMN IF NOT EXISTS instagram TEXT NOT NULL DEFAULT '';
 
+-- Self-reported/entered gender ('feminino' | 'masculino' | 'nao_informado'),
+-- used only to pick correct grammatical agreement in copy that names this
+-- person (see lib/gender.ts). Defaults to 'nao_informado' so existing rows
+-- stay valid without a backfill.
+ALTER TABLE alunas ADD COLUMN IF NOT EXISTS genero TEXT NOT NULL DEFAULT 'nao_informado';
+
 -- One screening record per aluna. Submitting again (student resubmits, or
 -- Larissa fills it manually) overwrites the previous answers (see
 -- lib/triagemService.ts submitScreening -> ON CONFLICT (aluna_id) DO UPDATE).

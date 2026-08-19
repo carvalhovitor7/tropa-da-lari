@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TriagemDraft, emptyDraft } from "@/lib/types";
+import { Genero, TriagemDraft, emptyDraft } from "@/lib/types";
 import { TriagemFormApi, TriagemFormContext } from "@/lib/triagemForm";
 import { StepPerfil } from "./StepPerfil";
 import { StepDor } from "./StepDor";
@@ -27,7 +27,7 @@ type Stage = "intro" | number | "resumo" | "submitting" | "done" | "error";
 // design tokens) as Larissa's in-app manual triagem, but drives them off a
 // local draft instead of the global store, and ends in "Enviar" -> thank-you
 // instead of Larissa's internal "Revisão" step.
-export function StudentTriagemFlow({ token, firstName }: { token: string; firstName: string }) {
+export function StudentTriagemFlow({ token, firstName, genero }: { token: string; firstName: string; genero: Genero }) {
   const [draft, setDraftState] = useState<TriagemDraft>(emptyDraft);
   const [stage, setStage] = useState<Stage>("intro");
   const [errorMsg, setErrorMsg] = useState("");
@@ -46,8 +46,8 @@ export function StudentTriagemFlow({ token, firstName }: { token: string; firstN
     setDraftState((d) => ({ ...d, dorIntensidade: { ...d.dorIntensidade, [regiao]: n } }));
 
   const formApi: TriagemFormApi = useMemo(
-    () => ({ draft, toggleArr, setDraft, setIntensidade }),
-    [draft]
+    () => ({ draft, toggleArr, setDraft, setIntensidade, genero }),
+    [draft, genero]
   );
 
   const totalSteps = STEPS.length + 1; // + resumo

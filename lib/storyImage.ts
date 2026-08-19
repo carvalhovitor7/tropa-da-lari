@@ -1,6 +1,6 @@
 "use client";
 
-// Renders a vertical 1080x1920 "story card" for the aluna's workout and
+// Renders a vertical 1080x1920 "story card" for the student's workout and
 // tries to hand it to the native share sheet via the Web Share API (item 3).
 //
 // Real, deep Instagram Stories integration ("share directly to the Stories

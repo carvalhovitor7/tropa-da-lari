@@ -2,13 +2,18 @@
 
 import { SAUDE_CONDICOES } from "@/lib/data";
 import { useTriagemForm } from "@/lib/triagemForm";
+import { alunoNoun, artigoDef } from "@/lib/gender";
 
 export function StepSaude() {
-  const { draft: d, toggleArr } = useTriagemForm();
+  const { draft: d, toggleArr, genero } = useTriagemForm();
+  const artigo = artigoDef(genero);
+  const noun = alunoNoun(genero);
 
   return (
     <div className="px-5 pt-3.5 pb-8 flex flex-col gap-4.5">
-      <div className="text-[15px] font-bold text-ink">A aluna informou ou já foi avisada sobre alguma destas condições?</div>
+      <div className="text-[15px] font-bold text-ink">
+        {artigo === "a" ? "A" : "O"} {noun} informou ou já foi avisad{artigo} sobre alguma destas condições?
+      </div>
       <div className="flex flex-col gap-2">
         {SAUDE_CONDICOES.map((sd) => {
           const sel = d.saude.includes(sd);
@@ -34,8 +39,8 @@ export function StepSaude() {
       </div>
       {d.saude.length > 0 && (
         <div className="rounded-[14px] p-3.5 text-[13px] leading-relaxed" style={{ background: "#F6DEDA", color: "#8A3B2C" }}>
-          <b>Atenção antes da prescrição.</b> Esta aluna informou condições que merecem avaliação mais detalhada antes da
-          progressão do exercício.
+          <b>Atenção antes da prescrição.</b> {artigo === "a" ? "Esta" : "Este"} {noun} informou condições que merecem
+          avaliação mais detalhada antes da progressão do exercício.
         </div>
       )}
     </div>

@@ -18,6 +18,7 @@ import {
 } from "./types";
 import { TriagemFormApi, TriagemFormContext } from "./triagemForm";
 import { diffExercises } from "./treinoHistory";
+import { agree } from "./gender";
 
 const STORAGE_KEY = "tropa-da-lari-state-v2";
 
@@ -505,6 +506,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 level: entry.aluna.level,
                 notes: entry.aluna.notes,
                 instagram: entry.aluna.instagram ?? existing.instagram ?? "",
+                genero: entry.aluna.genero ?? existing.genero ?? "nao_informado",
               });
             } else {
               byId.set(entry.aluna.id, {
@@ -518,6 +520,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 level: entry.aluna.level,
                 notes: entry.aluna.notes,
                 instagram: entry.aluna.instagram ?? "",
+                genero: entry.aluna.genero ?? "nao_informado",
                 hasTreinos: false,
                 treinos: [],
               });
@@ -580,6 +583,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         level: draft.level,
         notes: "",
         instagram: draft.instagram,
+        genero: draft.genero,
         hasTreinos: false,
         treinos: [],
       };
@@ -592,19 +596,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const name = state.addAlunaDraft.name.trim();
     if (!name) {
       setState((s) => ({ ...s, addAlunaBusy: false }));
-      toast("Digite o nome da aluna.");
+      toast("Digite o nome do aluno.");
       return;
     }
-    const created = await createAlunaRemote({ name });
+    const created = await createAlunaRemote({ name, genero: state.addAlunaDraft.genero });
     if (!created) {
       setState((s) => ({ ...s, addAlunaBusy: false }));
-      toast("Não foi possível criar a aluna agora.");
+      toast("Não foi possível criar o aluno agora.");
       return;
     }
-    addLocalAluna(created.id, { ...emptyAddAlunaDraft(), name });
+    addLocalAluna(created.id, { ...emptyAddAlunaDraft(), name, genero: state.addAlunaDraft.genero });
     const url = typeof window !== "undefined" ? `${window.location.origin}/triagem/${created.screeningToken}` : "";
     setState((s) => ({ ...s, addAlunaBusy: false, addAlunaLinkUrl: url }));
-  }, [state.addAlunaDraft.name, createAlunaRemote, addLocalAluna, toast]);
+  }, [state.addAlunaDraft.name, state.addAlunaDraft.genero, createAlunaRemote, addLocalAluna, toast]);
 
   const submitAddAlunaManual = useCallback(async () => {
     setState((s) => ({ ...s, addAlunaBusy: true }));
@@ -612,18 +616,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const name = draft.name.trim();
     if (!name) {
       setState((s) => ({ ...s, addAlunaBusy: false }));
-      toast("Digite o nome da aluna.");
+      toast("Digite o nome do aluno.");
       return;
     }
     const created = await createAlunaRemote(draft);
     if (!created) {
       setState((s) => ({ ...s, addAlunaBusy: false }));
-      toast("Não foi possível salvar a aluna agora.");
+      toast("Não foi possível salvar o aluno agora.");
       return;
     }
     addLocalAluna(created.id, draft);
     setState((s) => ({ ...s, addAlunaBusy: false, addAlunaMode: "closed", addAlunaDraft: emptyAddAlunaDraft() }));
-    toast(`${name.split(" ")[0]} adicionada.`);
+    toast(`${name.split(" ")[0]} ${agree(draft.genero, "adicionado", "adicionada")}.`);
   }, [state.addAlunaDraft, createAlunaRemote, addLocalAluna, toast]);
 
   const updateAlunaInstagram = useCallback((id: string, instagram: string) => {
@@ -724,8 +728,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const triagemFormApi: TriagemFormApi = useMemo(
-    () => ({ draft: state.triagemDraft, toggleArr, setDraft, setIntensidade }),
-    [state.triagemDraft, toggleArr, setDraft, setIntensidade]
+    () => ({
+      draft: state.triagemDraft,
+      toggleArr,
+      setDraft,
+      setIntensidade,
+      genero: state.alunas.find((a) => a.id === state.triagemAlunaId)?.genero,
+    }),
+    [state.triagemDraft, state.alunas, state.triagemAlunaId, toggleArr, setDraft, setIntensidade]
   );
 
   return (

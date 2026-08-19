@@ -22,6 +22,7 @@ import { Whatsapp } from "./screens/Whatsapp";
 import { TriagemIntro } from "./screening/TriagemIntro";
 import { TriagemStep } from "./screening/TriagemStep";
 import { currentAluna } from "@/lib/store";
+import { alunoNoun } from "@/lib/gender";
 
 const TOP_SCREENS: ScreenKey[] = ["dashboard", "alunas", "treinos-ph", "biblioteca-ph"];
 const TRIAGEM_SCREENS: ScreenKey[] = [
@@ -42,7 +43,7 @@ export function AppShell() {
   const isTriagemStep = TRIAGEM_SCREENS.includes(state.screen);
 
   const headerMap: Partial<Record<ScreenKey, [string, string]>> = {
-    perfil: ["ALUNA", aluna.name],
+    perfil: [alunoNoun(aluna.genero).toUpperCase(), aluna.name],
     iniciar: ["NOVO TREINO", "Como começar?"],
     modelos: ["MODELOS", "Meus modelos"],
     "criar-modelo": ["MODELOS", "Salvar modelo"],

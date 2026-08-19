@@ -46,7 +46,7 @@ export function Dashboard() {
         <div>
           <div className="text-[13px] font-bold text-ink">Sua semana</div>
           <div className="text-xs text-ink-soft mt-0.5">
-            {recentTreinos.length} treinos montados · {state.alunas.filter((a) => a.hasTreinos).length} alunas atendidas
+            {recentTreinos.length} treinos montados · {state.alunas.filter((a) => a.hasTreinos).length} alunos atendidos
           </div>
           <div className="flex gap-1 mt-2.5 items-end">
             {[
@@ -92,7 +92,7 @@ export function Dashboard() {
       </div>
 
       <div>
-        <div className="text-sm font-bold text-ink mb-2.5">Alunas recentes</div>
+        <div className="text-sm font-bold text-ink mb-2.5">Alunos recentes</div>
         <div className="flex gap-3.5 overflow-x-auto pb-1">
           {state.alunas.map((al) => (
             <button

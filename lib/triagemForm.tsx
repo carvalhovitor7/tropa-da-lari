@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { TriagemDraft } from "./types";
+import { Genero, TriagemDraft } from "./types";
 
 // Minimal surface the components/screening/Step* components need to read
 // and edit the in-progress screening draft. AppProvider (lib/store.tsx)
@@ -14,6 +14,10 @@ export interface TriagemFormApi {
   toggleArr: (field: keyof TriagemDraft, item: string) => void;
   setDraft: (field: keyof TriagemDraft, value: unknown) => void;
   setIntensidade: (regiao: string, n: number) => void;
+  // Gender of the person this screening is about — used only for
+  // grammatical agreement in copy like StepSaude's "o aluno"/"a aluna".
+  // Undefined defaults to the neutral masculine form.
+  genero?: Genero;
 }
 
 export const TriagemFormContext = createContext<TriagemFormApi | null>(null);

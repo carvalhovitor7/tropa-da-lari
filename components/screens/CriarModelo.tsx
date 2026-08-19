@@ -25,7 +25,7 @@ export function CriarModelo() {
         <textarea
           value={state.modeloDraft.desc}
           onChange={(e) => setModeloDraft({ desc: e.target.value })}
-          placeholder="ex: Ideal para alunas intermediárias, foco em força."
+          placeholder="ex: Ideal para alunos de nível intermediário, foco em força."
           className="mt-1.5 w-full min-h-[80px] px-4 py-3.5 rounded-[14px] border border-border bg-white text-sm text-ink resize-none"
         />
       </div>

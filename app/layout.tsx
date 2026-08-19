@@ -17,7 +17,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: "Tropa da Lari",
-  description: "Monte e envie fichas de treino personalizadas para suas alunas.",
+  description: "Monte e envie fichas de treino personalizadas para seus alunos.",
 };
 
 export const viewport: Viewport = {

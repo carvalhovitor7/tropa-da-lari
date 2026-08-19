@@ -1,6 +1,7 @@
 "use client";
 
 import { currentAluna, useApp } from "@/lib/store";
+import { agree } from "@/lib/gender";
 
 export function TriagemIntro() {
   const { state, onTriagemIniciar, onTriagemPular } = useApp();
@@ -17,7 +18,7 @@ export function TriagemIntro() {
       <div>
         <div className="font-serif text-[26px] leading-[1.2] text-ink">Triagem de {aluna.firstName}</div>
         <div className="text-sm text-ink-soft mt-2 leading-relaxed">
-          Algumas perguntas rápidas (3–5 min) para você conhecer melhor o histórico dela antes de montar o treino.
+          Algumas perguntas rápidas (3–5 min) para você conhecer melhor {agree(aluna.genero, "o histórico dele", "o histórico dela")} antes de montar o treino.
         </div>
       </div>
       <div className="bg-white rounded-2xl p-4 text-[13px] text-ink-soft leading-relaxed" style={{ boxShadow: "0 8px 20px -14px rgba(58,52,46,0.2)" }}>

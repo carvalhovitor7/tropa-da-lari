@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { currentAluna, useApp } from "@/lib/store";
 import { computeAlert, computeWarnings } from "@/lib/screening";
 import { treinoDateSummary } from "@/lib/dates";
+import { agree } from "@/lib/gender";
 
 export function Perfil() {
   const { state, onFazerTriagem, onVerTriagem, onNovoTreino, onDuplicarAnterior, onUsarModelo, openTreino, syncTriagens, updateAlunaInstagram, toast } = useApp();
@@ -137,7 +138,7 @@ export function Perfil() {
             </div>
             <div className="flex-1">
               <div className="text-[13px] font-bold text-ink">Copiar link de triagem de {aluna.firstName}</div>
-              <div className="text-xs text-ink-soft mt-0.5">Ela preenche pelo próprio celular, 3–5 min.</div>
+              <div className="text-xs text-ink-soft mt-0.5">{agree(aluna.genero, "Ele", "Ela")} preenche pelo próprio celular, 3–5 min.</div>
             </div>
           </button>
           <button

@@ -18,10 +18,10 @@ export async function GET() {
 }
 
 // POST /api/alunas — item 1 "Adicionar aluna". Body: { name, goal?, freq?,
-// level?, notes?, instagram? }. Used by both the "Convidar por link" path
-// (only name is sent) and the "Cadastro manual" path (full profile).
-// Always returns the new aluna including its screeningToken so the UI can
-// build the /triagem/{token} link immediately.
+// level?, notes?, instagram?, genero? }. Used by both the "Convidar por
+// link" path (only name is sent) and the "Cadastro manual" path (full
+// profile). Always returns the new aluna including its screeningToken so
+// the UI can build the /triagem/{token} link immediately.
 export async function POST(req: NextRequest) {
   let body: unknown;
   try {
@@ -34,7 +34,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
-  const input = body as { name: string; goal?: string; freq?: string; level?: string; notes?: string; instagram?: string };
+  const input = body as {
+    name: string;
+    goal?: string;
+    freq?: string;
+    level?: string;
+    notes?: string;
+    instagram?: string;
+    genero?: "feminino" | "masculino" | "nao_informado";
+  };
   if (!input.name.trim()) {
     return NextResponse.json({ error: "name_required" }, { status: 400 });
   }

@@ -1,5 +1,5 @@
 import { sql } from "./db";
-import { Aluna, TriagemDraft } from "./types";
+import { Aluna, Genero, TriagemDraft } from "./types";
 import { computeAlert } from "./screening";
 import { generateScreeningToken } from "./triagemToken";
 
@@ -46,6 +46,12 @@ function draftFromRow(row: Row): TriagemDraft {
   };
 }
 
+const GENEROS: Genero[] = ["feminino", "masculino", "nao_informado"];
+
+function normalizeGenero(value: unknown): Genero {
+  return GENEROS.includes(value as Genero) ? (value as Genero) : "nao_informado";
+}
+
 function alunaFromRow(row: Row): AlunaRecord {
   return {
     id: row.id as string,
@@ -58,6 +64,7 @@ function alunaFromRow(row: Row): AlunaRecord {
     level: (row.level as string) ?? "",
     notes: (row.notes as string) ?? "",
     instagram: (row.instagram as string) ?? "",
+    genero: normalizeGenero(row.genero),
     hasTreinos: Boolean(row.has_treinos),
     treinos: [],
     screeningToken: row.screening_token as string,
@@ -98,6 +105,7 @@ export interface NewAlunaInput {
   level?: string;
   notes?: string;
   instagram?: string;
+  genero?: Genero;
 }
 
 // Used by POST /api/alunas — item 1 "Adicionar aluna". Covers both paths:
@@ -117,10 +125,11 @@ export async function createAluna(input: NewAlunaInput): Promise<AlunaRecord> {
     .join("");
   const id = await uniqueAlunaId(name);
   const token = generateScreeningToken();
+  const genero = normalizeGenero(input.genero);
 
   const { rows } = await sql`
-    INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, has_treinos, screening_token)
-    VALUES (${id}, ${name}, ${firstName}, ${initials}, ${input.goal ?? ""}, ${input.freq ?? ""}, ${""}, ${input.level ?? ""}, ${input.notes ?? ""}, ${input.instagram ?? ""}, FALSE, ${token})
+    INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, genero, has_treinos, screening_token)
+    VALUES (${id}, ${name}, ${firstName}, ${initials}, ${input.goal ?? ""}, ${input.freq ?? ""}, ${""}, ${input.level ?? ""}, ${input.notes ?? ""}, ${input.instagram ?? ""}, ${genero}, FALSE, ${token})
     RETURNING *
   `;
   return alunaFromRow(rows[0]);
@@ -131,11 +140,13 @@ export async function createAluna(input: NewAlunaInput): Promise<AlunaRecord> {
 // Used by GET /api/triagem/[token] — deliberately returns only the aluna's
 // name, never anything else (dor/lesões/other alunas), since the token is
 // the only access control on that route.
-export async function getAlunaByToken(token: string): Promise<{ id: string; name: string; firstName: string } | null> {
-  const { rows } = await sql`SELECT id, name, first_name FROM alunas WHERE screening_token = ${token} LIMIT 1`;
+export async function getAlunaByToken(
+  token: string
+): Promise<{ id: string; name: string; firstName: string; genero: Genero } | null> {
+  const { rows } = await sql`SELECT id, name, first_name, genero FROM alunas WHERE screening_token = ${token} LIMIT 1`;
   if (rows.length === 0) return null;
   const row = rows[0];
-  return { id: row.id as string, name: row.name as string, firstName: row.first_name as string };
+  return { id: row.id as string, name: row.name as string, firstName: row.first_name as string, genero: normalizeGenero(row.genero) };
 }
 
 // Used by POST /api/triagem/[token] — writes/overwrites the screening tied

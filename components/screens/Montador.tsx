@@ -2,6 +2,7 @@
 
 import { currentAluna, useApp } from "@/lib/store";
 import { computeWarnings } from "@/lib/screening";
+import { alunoNoun, artigoDef } from "@/lib/gender";
 
 export function Montador() {
   const { state, onVerTriagem, editExercise, duplicateExercise, deleteExercise, openBusca, goTo } = useApp();
@@ -32,7 +33,9 @@ export function Montador() {
             style={{ boxShadow: "0 8px 20px -14px rgba(58,52,46,0.2)" }}
           >
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-ink-softer font-bold uppercase tracking-wide">Perfil da aluna</div>
+              <div className="text-xs text-ink-softer font-bold uppercase tracking-wide">
+                Perfil d{artigoDef(aluna.genero)} {alunoNoun(aluna.genero)}
+              </div>
               <div className="text-[13px] text-ink font-bold mt-0.5">
                 {aluna.firstName} · {summaryLine}
               </div>

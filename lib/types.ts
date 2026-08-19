@@ -70,6 +70,12 @@ export interface Treino {
   versions?: TreinoVersion[];
 }
 
+// Self-reported/entered gender, used only to pick correct grammatical
+// agreement ("aluno"/"aluna", "o"/"a", ...) in copy that names a specific
+// person. "nao_informado" falls back to the app-wide neutral masculine
+// default (see lib/gender.ts) rather than guessing.
+export type Genero = "feminino" | "masculino" | "nao_informado";
+
 export interface Aluna {
   id: string;
   name: string;
@@ -81,6 +87,7 @@ export interface Aluna {
   level: string;
   notes: string;
   instagram: string;
+  genero: Genero;
   hasTreinos: boolean;
   treinos: Treino[];
 }
@@ -174,6 +181,7 @@ export interface AddAlunaDraft {
   freq: string;
   level: string;
   instagram: string;
+  genero: Genero;
 }
 
 export const emptyAddAlunaDraft = (): AddAlunaDraft => ({
@@ -182,6 +190,7 @@ export const emptyAddAlunaDraft = (): AddAlunaDraft => ({
   freq: "",
   level: "",
   instagram: "",
+  genero: "nao_informado",
 });
 
 export interface ModeloDraft {

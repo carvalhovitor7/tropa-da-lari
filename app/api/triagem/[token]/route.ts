@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
   try {
     const aluna = await getAlunaByToken(token);
     if (!aluna) return NextResponse.json({ error: "not_found" }, { status: 404 });
-    return NextResponse.json({ firstName: aluna.firstName, name: aluna.name });
+    return NextResponse.json({ firstName: aluna.firstName, name: aluna.name, genero: aluna.genero });
   } catch (err) {
     console.error("[api/triagem/:token] GET failed", err);
     return NextResponse.json({ error: "server_error" }, { status: 500 });

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useApp } from "@/lib/store";
 import { FREQUENCIAS, OBJETIVOS } from "@/lib/data";
+import { Chip } from "@/components/ui/Chip";
+import { Genero } from "@/lib/types";
 
 export function Alunas() {
   const { state, setAlunaSearch, openPerfil, openAddAluna, closeAddAluna, chooseAddAlunaMode, setAddAlunaDraft, submitAddAlunaLink, submitAddAlunaManual, toast } = useApp();
@@ -24,7 +26,7 @@ export function Alunas() {
   return (
     <div className="px-5 pt-5.5 pb-24 flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <div className="font-serif text-[28px] text-ink">Alunas</div>
+        <div className="font-serif text-[28px] text-ink">Alunos</div>
         <button
           onClick={openAddAluna}
           className="shrink-0 text-white border-none text-[13px] font-bold px-4 py-2.5 rounded-full cursor-pointer flex items-center gap-1.5"
@@ -34,13 +36,13 @@ export function Alunas() {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Adicionar aluna
+          Adicionar aluno
         </button>
       </div>
       <input
         value={state.alunaSearch}
         onChange={(e) => setAlunaSearch(e.target.value)}
-        placeholder="Buscar aluna…"
+        placeholder="Buscar aluno…"
         className="w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
       />
       <div className="flex flex-col gap-3">
@@ -65,7 +67,7 @@ export function Alunas() {
             </button>
           </div>
         ))}
-        {filtered.length === 0 && <div className="text-center py-6 text-sm text-ink-soft">Nenhuma aluna encontrada.</div>}
+        {filtered.length === 0 && <div className="text-center py-6 text-sm text-ink-soft">Nenhum aluno encontrado.</div>}
       </div>
 
       {state.addAlunaMode !== "closed" && (
@@ -76,7 +78,7 @@ export function Alunas() {
           >
             {state.addAlunaMode === "choose" && (
               <>
-                <div className="font-serif text-[22px] text-ink">Adicionar aluna</div>
+                <div className="font-serif text-[22px] text-ink">Adicionar aluno</div>
                 <button
                   onClick={() => chooseAddAlunaMode("link")}
                   className="text-left bg-white rounded-2xl p-4 flex items-center gap-3 cursor-pointer"
@@ -105,7 +107,7 @@ export function Alunas() {
                   </div>
                   <div>
                     <div className="text-sm font-bold text-ink">Cadastro manual</div>
-                    <div className="text-xs text-ink-soft mt-0.5">Preencha os dados da aluna você mesma.</div>
+                    <div className="text-xs text-ink-soft mt-0.5">Preencha os dados do aluno você mesma.</div>
                   </div>
                 </button>
                 <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
@@ -118,7 +120,7 @@ export function Alunas() {
               <>
                 <div className="font-serif text-[22px] text-ink">Convidar por link</div>
                 <div>
-                  <label className="text-[13px] font-bold text-ink">Nome da aluna</label>
+                  <label className="text-[13px] font-bold text-ink">Nome do aluno</label>
                   <input
                     autoFocus
                     value={state.addAlunaDraft.name}
@@ -173,6 +175,26 @@ export function Alunas() {
                     placeholder="ex: Mariana Costa"
                     className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
                   />
+                </div>
+                <div>
+                  <label className="text-[13px] font-bold text-ink">Gênero</label>
+                  <div className="mt-1.5 flex gap-2">
+                    {(
+                      [
+                        ["feminino", "Feminino"],
+                        ["masculino", "Masculino"],
+                        ["nao_informado", "Prefiro não dizer"],
+                      ] as [Genero, string][]
+                    ).map(([value, label]) => (
+                      <Chip
+                        key={value}
+                        small
+                        label={label}
+                        active={state.addAlunaDraft.genero === value}
+                        onClick={() => setAddAlunaDraft({ genero: value })}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="text-[13px] font-bold text-ink">Objetivo</label>
@@ -237,7 +259,7 @@ export function Alunas() {
                   className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer disabled:opacity-60"
                   style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
                 >
-                  {state.addAlunaBusy ? "Salvando…" : "Salvar aluna"}
+                  {state.addAlunaBusy ? "Salvando…" : "Salvar aluno"}
                 </button>
                 <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
                   Cancelar

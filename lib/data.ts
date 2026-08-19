@@ -349,6 +349,7 @@ export const ALUNAS: Aluna[] = [
     level: "Intermediária",
     notes: "Sem impacto no joelho direito.",
     instagram: "",
+    genero: "feminino",
     hasTreinos: true,
     treinos: [
       {
@@ -394,6 +395,7 @@ export const ALUNAS: Aluna[] = [
     level: "Avançada",
     notes: "",
     instagram: "",
+    genero: "feminino",
     hasTreinos: false,
     treinos: [],
   },
@@ -408,6 +410,7 @@ export const ALUNAS: Aluna[] = [
     level: "Iniciante",
     notes: "",
     instagram: "",
+    genero: "feminino",
     hasTreinos: false,
     treinos: [],
   },
@@ -422,6 +425,7 @@ export const ALUNAS: Aluna[] = [
     level: "Iniciante",
     notes: "Liberada para baixo impacto.",
     instagram: "",
+    genero: "feminino",
     hasTreinos: false,
     treinos: [],
   },

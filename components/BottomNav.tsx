@@ -37,7 +37,7 @@ function IconBook({ c }: { c: string }) {
 
 const ITEMS: { key: ScreenKey; label: string; Icon: (p: { c: string }) => React.JSX.Element }[] = [
   { key: "dashboard", label: "Início", Icon: IconHome },
-  { key: "alunas", label: "Alunas", Icon: IconUsers },
+  { key: "alunas", label: "Alunos", Icon: IconUsers },
   { key: "treinos-ph", label: "Treinos", Icon: IconActivity },
   { key: "biblioteca-ph", label: "Biblioteca", Icon: IconBook },
 ];

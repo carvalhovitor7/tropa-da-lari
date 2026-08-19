@@ -13,7 +13,19 @@ export function Montador() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="px-5 pt-1 pb-32 flex flex-col gap-3.5 flex-1">
-        {triagem && (
+        {!!state.weeklyRepTargets.length && (
+          <div className="bg-sage-bg rounded-2xl px-3.5 py-3 flex flex-col gap-1">
+            <div className="text-[11px] font-bold text-sage-text uppercase tracking-wide">Ênfase semanal</div>
+            <div className="flex flex-wrap gap-1.5">
+              {state.weeklyRepTargets.map((w) => (
+                <span key={w.grupo} className="bg-white text-sage-text text-[11px] font-bold px-2.5 py-1 rounded-full">
+                  {w.grupo}: {w.reps} reps/semana
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {triagem && !state.modeloBuilding && (
           <button
             onClick={onVerTriagem}
             className="text-left bg-white border-none rounded-2xl px-3.5 py-3 flex items-center gap-2.5 cursor-pointer"
@@ -107,9 +119,19 @@ export function Montador() {
         <div className="text-xs text-ink-softer font-bold">
           {state.exercises.length} exercício{state.exercises.length === 1 ? "" : "s"}
         </div>
-        <button onClick={() => goTo("revisao")} className="w-full bg-ink text-white border-none text-base font-bold py-4 rounded-full cursor-pointer">
-          Revisar treino
-        </button>
+        {state.modeloBuilding ? (
+          <button
+            onClick={() => goTo("criar-modelo")}
+            disabled={state.exercises.length === 0}
+            className="w-full bg-ink text-white border-none text-base font-bold py-4 rounded-full cursor-pointer disabled:opacity-50"
+          >
+            Salvar modelo
+          </button>
+        ) : (
+          <button onClick={() => goTo("revisao")} className="w-full bg-ink text-white border-none text-base font-bold py-4 rounded-full cursor-pointer">
+            Revisar treino
+          </button>
+        )}
       </div>
     </div>
   );

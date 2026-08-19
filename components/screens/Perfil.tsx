@@ -3,14 +3,18 @@
 import { useEffect, useState } from "react";
 import { currentAluna, useApp } from "@/lib/store";
 import { computeAlert, computeWarnings } from "@/lib/screening";
+import { treinoDateSummary } from "@/lib/dates";
 
 export function Perfil() {
-  const { state, onFazerTriagem, onVerTriagem, onNovoTreino, onDuplicarAnterior, onUsarModelo, openTreino, syncTriagens, toast } = useApp();
+  const { state, onFazerTriagem, onVerTriagem, onNovoTreino, onDuplicarAnterior, onUsarModelo, openTreino, syncTriagens, updateAlunaInstagram, toast } = useApp();
   const aluna = currentAluna(state);
   const triagem = state.triagens[aluna.id];
   const alert = computeAlert(triagem);
   const warnings = computeWarnings(triagem);
   const [copying, setCopying] = useState(false);
+  const [editingInsta, setEditingInsta] = useState(false);
+  const [instaDraft, setInstaDraft] = useState(aluna.instagram);
+  const [openHistoryFor, setOpenHistoryFor] = useState<string | null>(null);
 
   // Pull any triagem submitted from the student's own phone since we last
   // loaded this profile.
@@ -35,6 +39,12 @@ export function Perfil() {
     }
   };
 
+  const saveInsta = () => {
+    updateAlunaInstagram(aluna.id, instaDraft.replace(/^@/, "").trim());
+    setEditingInsta(false);
+    toast("Instagram atualizado.");
+  };
+
   return (
     <div className="px-5 pt-2 pb-24 flex flex-col gap-5.5">
       <div className="flex gap-3.5 items-center">
@@ -53,12 +63,41 @@ export function Perfil() {
       <div className="grid grid-cols-2 gap-2.5">
         <div className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.18)" }}>
           <div className="text-[11px] text-ink-softer font-bold uppercase tracking-wide">Objetivo</div>
-          <div className="text-sm text-ink font-semibold mt-1">{aluna.goal}</div>
+          <div className="text-sm text-ink font-semibold mt-1">{aluna.goal || "—"}</div>
         </div>
         <div className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.18)" }}>
           <div className="text-[11px] text-ink-softer font-bold uppercase tracking-wide">Frequência</div>
-          <div className="text-sm text-ink font-semibold mt-1">{aluna.freq}</div>
+          <div className="text-sm text-ink font-semibold mt-1">{aluna.freq || "—"}</div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.18)" }}>
+        <div className="text-[11px] text-ink-softer font-bold uppercase tracking-wide">Instagram</div>
+        {editingInsta ? (
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="text-ink-softer text-sm">@</span>
+            <input
+              autoFocus
+              value={instaDraft}
+              onChange={(e) => setInstaDraft(e.target.value.replace(/^@/, ""))}
+              className="flex-1 text-sm text-ink outline-none border-b border-border pb-1"
+              placeholder="usuario"
+            />
+            <button onClick={saveInsta} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none">
+              Salvar
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              setInstaDraft(aluna.instagram);
+              setEditingInsta(true);
+            }}
+            className="mt-1 text-sm text-ink font-semibold bg-transparent border-none cursor-pointer p-0 block"
+          >
+            {aluna.instagram ? `@${aluna.instagram}` : <span className="text-ink-soft font-normal">+ adicionar @</span>}
+          </button>
+        )}
       </div>
 
       {aluna.notes && <div className="bg-sage-bg rounded-[14px] p-3.5 text-[13px] text-sage-text">{aluna.notes}</div>}
@@ -115,19 +154,38 @@ export function Perfil() {
         {aluna.hasTreinos ? (
           <div className="flex flex-col gap-2.5">
             {aluna.treinos.map((tr) => (
-              <button
-                key={tr.id}
-                onClick={() => openTreino(tr)}
-                className="flex justify-between items-center bg-white border border-border rounded-[14px] px-4 py-3.5 cursor-pointer text-left"
-              >
-                <div>
-                  <div className="text-[15px] font-bold text-ink">{tr.name}</div>
-                  <div className="text-[13px] text-ink-soft">{tr.foco}</div>
-                </div>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BC6B52" strokeWidth={2.2} strokeLinecap="round">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
+              <div key={tr.id} className="bg-white border border-border rounded-[14px] px-4 py-3.5 flex flex-col gap-2">
+                <button onClick={() => openTreino(tr)} className="flex justify-between items-center bg-transparent border-none cursor-pointer text-left p-0">
+                  <div>
+                    <div className="text-[15px] font-bold text-ink">{tr.name}</div>
+                    <div className="text-[13px] text-ink-soft">{tr.foco}</div>
+                    <div className="text-[11px] text-ink-softer mt-1">{treinoDateSummary(tr.createdAt, tr.sentAt)}</div>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BC6B52" strokeWidth={2.2} strokeLinecap="round">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+                {!!tr.versions?.length && (
+                  <div>
+                    <button
+                      onClick={() => setOpenHistoryFor(openHistoryFor === tr.id ? null : tr.id)}
+                      className="bg-transparent border-none text-[11px] font-bold text-terracotta cursor-pointer p-0"
+                    >
+                      {openHistoryFor === tr.id ? "Ocultar histórico de alterações" : "Ver histórico de alterações"}
+                    </button>
+                    {openHistoryFor === tr.id && (
+                      <div className="mt-2 flex flex-col gap-1.5 border-t border-border pt-2">
+                        {tr.versions.map((v, i) => (
+                          <div key={i} className="text-[11px] text-ink-soft leading-relaxed">
+                            <span className="font-bold text-ink-softer">{new Date(v.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}:</span>{" "}
+                            {v.changes.join(" ")}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         ) : (

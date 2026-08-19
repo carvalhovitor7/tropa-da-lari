@@ -14,6 +14,20 @@ export function Revisao() {
           {state.treinoName} — {state.treinoFoco}
         </div>
       </div>
+
+      {!!state.weeklyRepTargets.length && (
+        <div className="bg-sage-bg rounded-2xl px-3.5 py-3 flex flex-col gap-1.5">
+          <div className="text-[11px] font-bold text-sage-text uppercase tracking-wide">Ênfase semanal</div>
+          <div className="flex flex-wrap gap-1.5">
+            {state.weeklyRepTargets.map((w) => (
+              <span key={w.grupo} className="bg-white text-sage-text text-[11px] font-bold px-2.5 py-1 rounded-full">
+                {w.grupo}: {w.reps} reps/semana
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-3">
         {state.exercises.map((ex, i) => (
           <div key={ex.id} className="flex gap-3">
@@ -30,7 +44,25 @@ export function Revisao() {
             </div>
           </div>
         ))}
+        {state.exercises.length === 0 && <div className="text-sm text-ink-soft">Nenhum exercício adicionado ainda.</div>}
       </div>
+
+      {!!state.treinoVersions.length && (
+        <div>
+          <div className="text-sm font-bold text-ink mb-2">Histórico de alterações</div>
+          <div className="flex flex-col gap-2">
+            {state.treinoVersions.map((v, i) => (
+              <div key={i} className="bg-white border border-border rounded-[14px] px-3.5 py-3">
+                <div className="text-[11px] font-bold text-ink-softer mb-1">
+                  {new Date(v.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                </div>
+                <div className="text-[13px] text-ink leading-relaxed">{v.changes.join(" ")}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2 mt-2.5">
         <button
           onClick={() => goTo("montador")}

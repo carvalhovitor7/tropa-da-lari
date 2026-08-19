@@ -1,11 +1,25 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { ALUNAS, DEMO_EXERCISES, TRIAGENS_SEED } from "./data";
-import { AppState, Exercise, ScreenKey, TRIAGEM_STEPS, Treino, TriagemDraft, emptyDraft } from "./types";
+import { ALUNAS as SEED_ALUNAS, DEMO_EXERCISES, TEMPLATES, TRIAGENS_SEED } from "./data";
+import {
+  AddAlunaDraft,
+  Aluna,
+  AppState,
+  Exercise,
+  Modelo,
+  ScreenKey,
+  TRIAGEM_STEPS,
+  Treino,
+  TriagemDraft,
+  WeeklyRepTarget,
+  emptyAddAlunaDraft,
+  emptyDraft,
+} from "./types";
 import { TriagemFormApi, TriagemFormContext } from "./triagemForm";
+import { diffExercises } from "./treinoHistory";
 
-const STORAGE_KEY = "tropa-da-lari-state-v1";
+const STORAGE_KEY = "tropa-da-lari-state-v2";
 
 function initialState(): AppState {
   return {
@@ -14,18 +28,32 @@ function initialState(): AppState {
     alunaId: "juliana",
     alunaSearch: "",
     toast: "",
+    alunas: SEED_ALUNAS.map((a) => ({ ...a, treinos: a.treinos.map((t) => ({ ...t, exercises: t.exercises.map((e) => ({ ...e })) })) })),
     treinoName: "Treino A",
     treinoFoco: "Inferiores",
-    exercises: DEMO_EXERCISES.map((e) => ({ ...e })),
+    treinoId: null,
+    treinoCreatedAt: "",
+    treinoSentAt: null,
+    treinoVersions: [],
+    weeklyRepTargets: [],
+    exercises: DEMO_EXERCISES.slice(0, 4).map((e) => ({ ...e })),
     lastDefaults: { series: 4, reps: "10", descanso: "90s" },
     searchQuery: "",
     cfg: { exerciseName: "", series: 4, reps: "10", carga: "", descanso: "90s", obs: "", editingId: null },
     iniciarNome: "Treino B",
     iniciarFoco: "Corpo inteiro",
+    iniciarWeeklyTargets: [],
     triagens: { ...TRIAGENS_SEED },
     triagemAlunaId: null,
     triagemDraft: emptyDraft(),
     triagemViewOnly: false,
+    customTemplates: [],
+    modeloBuilding: false,
+    modeloDraft: { name: "", desc: "" },
+    addAlunaMode: "closed",
+    addAlunaDraft: emptyAddAlunaDraft(),
+    addAlunaLinkUrl: null,
+    addAlunaBusy: false,
   };
 }
 
@@ -35,7 +63,15 @@ function loadState(): AppState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return initialState();
     const parsed = JSON.parse(raw);
-    return { ...initialState(), ...parsed, screen: "dashboard", history: [], toast: "" };
+    return {
+      ...initialState(),
+      ...parsed,
+      screen: "dashboard",
+      history: [],
+      toast: "",
+      addAlunaMode: "closed",
+      addAlunaBusy: false,
+    };
   } catch {
     return initialState();
   }
@@ -43,6 +79,15 @@ function loadState(): AppState {
 
 function makeId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function initialsFor(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 interface AppApi {
@@ -58,7 +103,7 @@ interface AppApi {
   onComecarZero: () => void;
   onDuplicarAnterior: () => void;
   onUsarModelo: () => void;
-  applyTemplate: (t: { name: string }) => void;
+  applyTemplate: (t: Modelo) => void;
   openBusca: () => void;
   setSearchQuery: (v: string) => void;
   selectExercise: (name: string) => void;
@@ -67,6 +112,7 @@ interface AppApi {
   deleteExercise: (id: string) => void;
   addToTreino: () => void;
   approve: () => void;
+  markSent: () => void;
   setCfg: (patch: Partial<AppState["cfg"]>) => void;
   toggleArr: (field: keyof AppState["triagemDraft"], item: string) => void;
   setDraft: (field: keyof AppState["triagemDraft"], value: unknown) => void;
@@ -78,8 +124,21 @@ interface AppApi {
   onTriagemAvancar: () => void;
   setIniciarNome: (v: string) => void;
   setIniciarFoco: (v: string) => void;
+  setIniciarWeeklyTarget: (grupo: string, reps: number | null) => void;
   navTo: (screen: ScreenKey) => void;
   syncTriagens: () => void;
+  // "Adicionar aluna" (item 1)
+  openAddAluna: () => void;
+  closeAddAluna: () => void;
+  chooseAddAlunaMode: (mode: "link" | "manual") => void;
+  setAddAlunaDraft: (patch: Partial<AddAlunaDraft>) => void;
+  submitAddAlunaLink: () => Promise<void>;
+  submitAddAlunaManual: () => Promise<void>;
+  updateAlunaInstagram: (id: string, instagram: string) => void;
+  // "Criar modelo" (item 2)
+  onCriarModelo: () => void;
+  setModeloDraft: (patch: Partial<AppState["modeloDraft"]>) => void;
+  saveModelo: () => void;
 }
 
 const AppContext = createContext<AppApi | null>(null);
@@ -133,20 +192,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setAlunaId = useCallback((id: string) => setState((s) => ({ ...s, alunaId: id })), []);
   const setAlunaSearch = useCallback((v: string) => setState((s) => ({ ...s, alunaSearch: v })), []);
 
-  const openPerfil = useCallback(
-    (id: string) => {
-      setState((s) => ({ ...s, alunaId: id, screen: "perfil", history: [...s.history, s.screen] }));
-    },
-    []
-  );
+  const openPerfil = useCallback((id: string) => {
+    setState((s) => ({ ...s, alunaId: id, screen: "perfil", history: [...s.history, s.screen] }));
+  }, []);
 
   const openTreino = useCallback((tr: Treino) => {
-    if (tr.demo) {
-      goTo("montador", { treinoName: tr.name, treinoFoco: tr.foco, exercises: DEMO_EXERCISES.map((e) => ({ ...e, id: makeId() })) });
-    } else {
-      goTo("montador", { treinoName: tr.name, treinoFoco: tr.foco, exercises: [] });
-    }
+    goTo("montador", {
+      treinoName: tr.name,
+      treinoFoco: tr.foco,
+      treinoId: tr.id,
+      treinoCreatedAt: tr.createdAt || new Date().toISOString(),
+      treinoSentAt: tr.sentAt ?? null,
+      treinoVersions: tr.versions ? [...tr.versions] : [],
+      weeklyRepTargets: tr.weeklyRepTargets ? [...tr.weeklyRepTargets] : [],
+      exercises: tr.demo ? DEMO_EXERCISES.map((e) => ({ ...e, id: makeId() })) : tr.exercises.map((e) => ({ ...e })),
+      modeloBuilding: false,
+    });
   }, [goTo]);
+
+  const startNewTreino = useCallback(
+    (name: string, foco: string, exercises: Exercise[]) => {
+      goTo("montador", {
+        treinoName: name,
+        treinoFoco: foco,
+        treinoId: makeId(),
+        treinoCreatedAt: new Date().toISOString(),
+        treinoSentAt: null,
+        treinoVersions: [],
+        weeklyRepTargets: [],
+        exercises,
+        modeloBuilding: false,
+      });
+    },
+    [goTo]
+  );
 
   const onNovoTreino = useCallback(() => {
     setState((s) => {
@@ -171,7 +250,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       history: [...s.history, s.screen],
       treinoName: s.iniciarNome,
       treinoFoco: s.iniciarFoco,
+      treinoId: makeId(),
+      treinoCreatedAt: new Date().toISOString(),
+      treinoSentAt: null,
+      treinoVersions: [],
+      weeklyRepTargets: s.iniciarWeeklyTargets,
       exercises: [],
+      modeloBuilding: false,
     }));
   }, []);
 
@@ -181,7 +266,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       screen: "montador",
       history: [...s.history, s.screen],
       treinoName: s.treinoName + " (cópia)",
+      treinoId: makeId(),
+      treinoCreatedAt: new Date().toISOString(),
+      treinoSentAt: null,
+      treinoVersions: [],
       exercises: s.exercises.map((e) => ({ ...e, id: makeId() })),
+      modeloBuilding: false,
     }));
     toast("Treino duplicado.");
   }, [toast]);
@@ -189,14 +279,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const onUsarModelo = useCallback(() => goTo("modelos"), [goTo]);
 
   const applyTemplate = useCallback(
-    (t: { name: string }) => {
-      goTo("montador", {
-        treinoName: t.name,
-        treinoFoco: "Personalizado",
-        exercises: DEMO_EXERCISES.slice(0, 3).map((e) => ({ ...e, id: makeId() })),
-      });
+    (t: Modelo) => {
+      startNewTreino(t.name, t.objetivos[0] || "Personalizado", t.exercises.map((e) => ({ ...e, id: makeId() })));
     },
-    [goTo]
+    [startNewTreino]
   );
 
   const openBusca = useCallback(() => goTo("busca"), [goTo]);
@@ -254,7 +340,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, [toast]);
 
-  const approve = useCallback(() => goTo("finalizado"), [goTo]);
+  // Persists the in-progress treino (state.exercises + metadata) into the
+  // aluna's treinos list, computing a version-history diff against whatever
+  // was saved before under the same treinoId (item 4).
+  const approve = useCallback(() => {
+    setState((s) => {
+      const aluna = s.alunas.find((a) => a.id === s.alunaId);
+      const prevTreino = aluna?.treinos.find((t) => t.id === s.treinoId);
+      const changes = diffExercises(prevTreino?.exercises ?? [], s.exercises);
+      const versions = changes.length > 0 ? [{ at: new Date().toISOString(), changes }, ...s.treinoVersions] : s.treinoVersions;
+      const treinoId = s.treinoId || makeId();
+      const savedTreino: Treino = {
+        id: treinoId,
+        name: s.treinoName,
+        foco: s.treinoFoco,
+        exercises: s.exercises.map((e) => ({ ...e })),
+        createdAt: s.treinoCreatedAt || new Date().toISOString(),
+        sentAt: s.treinoSentAt ?? undefined,
+        weeklyRepTargets: s.weeklyRepTargets,
+        versions,
+      };
+
+      const alunas = s.alunas.map((a) => {
+        if (a.id !== s.alunaId) return a;
+        const exists = a.treinos.some((t) => t.id === treinoId);
+        const treinos = exists ? a.treinos.map((t) => (t.id === treinoId ? savedTreino : t)) : [...a.treinos, savedTreino];
+        return { ...a, treinos, hasTreinos: true };
+      });
+
+      return {
+        ...s,
+        alunas,
+        treinoId,
+        treinoVersions: versions,
+        screen: "finalizado",
+        history: [...s.history, s.screen],
+      };
+    });
+  }, []);
+
+  // Sets sentAt on the current treino, called from the WhatsApp / Instagram
+  // share actions and "Salvar e finalizar" (item 4).
+  const markSent = useCallback(() => {
+    setState((s) => {
+      const sentAt = new Date().toISOString();
+      const alunas = s.alunas.map((a) => {
+        if (a.id !== s.alunaId) return a;
+        return { ...a, treinos: a.treinos.map((t) => (t.id === s.treinoId ? { ...t, sentAt } : t)) };
+      });
+      return { ...s, alunas, treinoSentAt: sentAt };
+    });
+  }, []);
 
   const setCfg = useCallback((patch: Partial<AppState["cfg"]>) => {
     setState((s) => ({ ...s, cfg: { ...s.cfg, ...patch } }));
@@ -327,12 +463,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setIniciarNome = useCallback((v: string) => setState((s) => ({ ...s, iniciarNome: v })), []);
   const setIniciarFoco = useCallback((v: string) => setState((s) => ({ ...s, iniciarFoco: v })), []);
 
-  // Pulls the latest screening answers from Postgres (via /api/alunas) and
-  // merges them into local state. This is how a triagem submitted by a
+  const setIniciarWeeklyTarget = useCallback((grupo: string, reps: number | null) => {
+    setState((s) => {
+      const rest = s.iniciarWeeklyTargets.filter((w) => w.grupo !== grupo);
+      const next: WeeklyRepTarget[] = reps == null || Number.isNaN(reps) ? rest : [...rest, { grupo, reps }];
+      return { ...s, iniciarWeeklyTargets: next };
+    });
+  }, []);
+
+  // Pulls alunas + latest screening answers from Postgres (via /api/alunas)
+  // and merges them into local state. This is how a triagem submitted by a
   // student on her own phone (see app/triagem/[token]) shows up in
-  // Larissa's app: called on mount from Dashboard and Perfil. Silently
-  // no-ops if the API/DB isn't reachable (e.g. no local Postgres configured)
-  // so it never blocks the rest of the app.
+  // Larissa's app, and how an aluna added from another session/device shows
+  // up here too. Local-only fields (treinos, and treino history) are
+  // preserved for alunas that already exist locally. Silently no-ops if the
+  // API/DB isn't reachable so it never blocks the rest of the app.
   const syncTriagens = useCallback(() => {
     let cancelled = false;
     (async () => {
@@ -340,15 +485,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch("/api/alunas", { cache: "no-store" });
         if (!res.ok) return;
         const data = (await res.json()) as {
-          alunas: { aluna: { id: string }; triagem: TriagemDraft | null }[];
+          alunas: { aluna: Omit<Aluna, "treinos" | "hasTreinos"> & { hasTreinos: boolean }; triagem: TriagemDraft | null }[];
         };
         if (cancelled || !Array.isArray(data.alunas)) return;
         setState((s) => {
           const triagens = { ...s.triagens };
+          const byId = new Map(s.alunas.map((a) => [a.id, a]));
           for (const entry of data.alunas) {
             if (entry.triagem) triagens[entry.aluna.id] = entry.triagem;
+            const existing = byId.get(entry.aluna.id);
+            if (existing) {
+              byId.set(entry.aluna.id, {
+                ...existing,
+                name: entry.aluna.name,
+                firstName: entry.aluna.firstName,
+                initials: entry.aluna.initials,
+                goal: entry.aluna.goal,
+                freq: entry.aluna.freq,
+                level: entry.aluna.level,
+                notes: entry.aluna.notes,
+                instagram: entry.aluna.instagram ?? existing.instagram ?? "",
+              });
+            } else {
+              byId.set(entry.aluna.id, {
+                id: entry.aluna.id,
+                name: entry.aluna.name,
+                firstName: entry.aluna.firstName,
+                initials: entry.aluna.initials,
+                goal: entry.aluna.goal,
+                freq: entry.aluna.freq,
+                last: entry.aluna.last ?? "",
+                level: entry.aluna.level,
+                notes: entry.aluna.notes,
+                instagram: entry.aluna.instagram ?? "",
+                hasTreinos: false,
+                treinos: [],
+              });
+            }
           }
-          return { ...s, triagens };
+          return { ...s, triagens, alunas: Array.from(byId.values()) };
         });
       } catch {
         // offline / no DB configured yet — local seed data stays as-is
@@ -358,6 +533,146 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  // --- item 1: "Adicionar aluna" ------------------------------------------
+
+  const openAddAluna = useCallback(() => {
+    setState((s) => ({ ...s, addAlunaMode: "choose", addAlunaDraft: emptyAddAlunaDraft(), addAlunaLinkUrl: null }));
+  }, []);
+  const closeAddAluna = useCallback(() => {
+    setState((s) => ({ ...s, addAlunaMode: "closed", addAlunaDraft: emptyAddAlunaDraft(), addAlunaLinkUrl: null, addAlunaBusy: false }));
+  }, []);
+  const chooseAddAlunaMode = useCallback((mode: "link" | "manual") => {
+    setState((s) => ({ ...s, addAlunaMode: mode, addAlunaLinkUrl: null }));
+  }, []);
+  const setAddAlunaDraft = useCallback((patch: Partial<AddAlunaDraft>) => {
+    setState((s) => ({ ...s, addAlunaDraft: { ...s.addAlunaDraft, ...patch } }));
+  }, []);
+
+  const createAlunaRemote = useCallback(
+    async (body: Partial<AddAlunaDraft> & { name: string }): Promise<{ id: string; screeningToken: string } | null> => {
+      try {
+        const res = await fetch("/api/alunas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) return null;
+        const data = (await res.json()) as { aluna: { id: string; name: string; screeningToken: string } };
+        return { id: data.aluna.id, screeningToken: data.aluna.screeningToken };
+      } catch {
+        return null;
+      }
+    },
+    []
+  );
+
+  const addLocalAluna = useCallback((id: string, draft: AddAlunaDraft) => {
+    setState((s) => {
+      const newAluna: Aluna = {
+        id,
+        name: draft.name.trim(),
+        firstName: draft.name.trim().split(" ")[0] || draft.name.trim(),
+        initials: initialsFor(draft.name.trim()) || "??",
+        goal: draft.goal,
+        freq: draft.freq,
+        last: "",
+        level: draft.level,
+        notes: "",
+        instagram: draft.instagram,
+        hasTreinos: false,
+        treinos: [],
+      };
+      return { ...s, alunas: [...s.alunas.filter((a) => a.id !== id), newAluna] };
+    });
+  }, []);
+
+  const submitAddAlunaLink = useCallback(async () => {
+    setState((s) => ({ ...s, addAlunaBusy: true }));
+    const name = state.addAlunaDraft.name.trim();
+    if (!name) {
+      setState((s) => ({ ...s, addAlunaBusy: false }));
+      toast("Digite o nome da aluna.");
+      return;
+    }
+    const created = await createAlunaRemote({ name });
+    if (!created) {
+      setState((s) => ({ ...s, addAlunaBusy: false }));
+      toast("Não foi possível criar a aluna agora.");
+      return;
+    }
+    addLocalAluna(created.id, { ...emptyAddAlunaDraft(), name });
+    const url = typeof window !== "undefined" ? `${window.location.origin}/triagem/${created.screeningToken}` : "";
+    setState((s) => ({ ...s, addAlunaBusy: false, addAlunaLinkUrl: url }));
+  }, [state.addAlunaDraft.name, createAlunaRemote, addLocalAluna, toast]);
+
+  const submitAddAlunaManual = useCallback(async () => {
+    setState((s) => ({ ...s, addAlunaBusy: true }));
+    const draft = state.addAlunaDraft;
+    const name = draft.name.trim();
+    if (!name) {
+      setState((s) => ({ ...s, addAlunaBusy: false }));
+      toast("Digite o nome da aluna.");
+      return;
+    }
+    const created = await createAlunaRemote(draft);
+    if (!created) {
+      setState((s) => ({ ...s, addAlunaBusy: false }));
+      toast("Não foi possível salvar a aluna agora.");
+      return;
+    }
+    addLocalAluna(created.id, draft);
+    setState((s) => ({ ...s, addAlunaBusy: false, addAlunaMode: "closed", addAlunaDraft: emptyAddAlunaDraft() }));
+    toast(`${name.split(" ")[0]} adicionada.`);
+  }, [state.addAlunaDraft, createAlunaRemote, addLocalAluna, toast]);
+
+  const updateAlunaInstagram = useCallback((id: string, instagram: string) => {
+    setState((s) => ({ ...s, alunas: s.alunas.map((a) => (a.id === id ? { ...a, instagram } : a)) }));
+  }, []);
+
+  // --- item 2: "Criar modelo" ---------------------------------------------
+
+  const onCriarModelo = useCallback(() => {
+    goTo("montador", {
+      treinoName: "Novo modelo",
+      treinoFoco: "Personalizado",
+      treinoId: null,
+      treinoCreatedAt: new Date().toISOString(),
+      treinoSentAt: null,
+      treinoVersions: [],
+      weeklyRepTargets: [],
+      exercises: [],
+      modeloBuilding: true,
+      modeloDraft: { name: "", desc: "" },
+    });
+  }, [goTo]);
+
+  const setModeloDraft = useCallback((patch: Partial<AppState["modeloDraft"]>) => {
+    setState((s) => ({ ...s, modeloDraft: { ...s.modeloDraft, ...patch } }));
+  }, []);
+
+  const saveModelo = useCallback(() => {
+    setState((s) => {
+      const name = s.modeloDraft.name.trim() || "Meu modelo";
+      const modelo: Modelo = {
+        id: makeId(),
+        name,
+        desc: s.modeloDraft.desc.trim(),
+        objetivos: [],
+        niveis: [],
+        exercises: s.exercises.map((e) => ({ ...e })),
+        isCustom: true,
+      };
+      return {
+        ...s,
+        customTemplates: [...s.customTemplates, modelo],
+        modeloBuilding: false,
+        screen: "modelos",
+        history: [...s.history, s.screen],
+      };
+    });
+    toast("Modelo salvo.");
+  }, [toast]);
 
   const api: AppApi = {
     state,
@@ -381,6 +696,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     deleteExercise,
     addToTreino,
     approve,
+    markSent,
     setCfg,
     toggleArr,
     setDraft,
@@ -392,8 +708,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     onTriagemAvancar,
     setIniciarNome,
     setIniciarFoco,
+    setIniciarWeeklyTarget,
     navTo,
     syncTriagens,
+    openAddAluna,
+    closeAddAluna,
+    chooseAddAlunaMode,
+    setAddAlunaDraft,
+    submitAddAlunaLink,
+    submitAddAlunaManual,
+    updateAlunaInstagram,
+    onCriarModelo,
+    setModeloDraft,
+    saveModelo,
   };
 
   const triagemFormApi: TriagemFormApi = useMemo(
@@ -415,7 +742,13 @@ export function useApp() {
 }
 
 export function currentAluna(state: AppState) {
-  return ALUNAS.find((a) => a.id === state.alunaId) || ALUNAS[0];
+  return state.alunas.find((a) => a.id === state.alunaId) || state.alunas[0];
 }
 
-export { ALUNAS };
+export function allTemplates(state: AppState): Modelo[] {
+  return [...TEMPLATES, ...state.customTemplates];
+}
+
+// SEED_ALUNAS kept available for anything that still needs the static seed
+// (e.g. scripts); prefer state.alunas / currentAluna within the app.
+export { SEED_ALUNAS as ALUNAS };

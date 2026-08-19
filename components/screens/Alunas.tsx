@@ -1,14 +1,42 @@
 "use client";
 
-import { ALUNAS, useApp } from "@/lib/store";
+import { useState } from "react";
+import { useApp } from "@/lib/store";
+import { FREQUENCIAS, OBJETIVOS } from "@/lib/data";
 
 export function Alunas() {
-  const { state, setAlunaSearch, openPerfil } = useApp();
-  const filtered = ALUNAS.filter((a) => a.name.toLowerCase().includes(state.alunaSearch.toLowerCase()));
+  const { state, setAlunaSearch, openPerfil, openAddAluna, closeAddAluna, chooseAddAlunaMode, setAddAlunaDraft, submitAddAlunaLink, submitAddAlunaManual, toast } = useApp();
+  const filtered = state.alunas.filter((a) => a.name.toLowerCase().includes(state.alunaSearch.toLowerCase()));
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = async () => {
+    if (!state.addAlunaLinkUrl) return;
+    try {
+      await navigator.clipboard.writeText(state.addAlunaLinkUrl);
+      setCopied(true);
+      toast("Link copiado.");
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      toast("Não foi possível copiar o link.");
+    }
+  };
 
   return (
     <div className="px-5 pt-5.5 pb-24 flex flex-col gap-4">
-      <div className="font-serif text-[28px] text-ink">Alunas</div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="font-serif text-[28px] text-ink">Alunas</div>
+        <button
+          onClick={openAddAluna}
+          className="shrink-0 text-white border-none text-[13px] font-bold px-4 py-2.5 rounded-full cursor-pointer flex items-center gap-1.5"
+          style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.6} strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Adicionar aluna
+        </button>
+      </div>
       <input
         value={state.alunaSearch}
         onChange={(e) => setAlunaSearch(e.target.value)}
@@ -22,12 +50,12 @@ export function Alunas() {
               <div className="w-12 h-12 rounded-full flex items-center justify-center text-sage font-bold bg-sage-bg shrink-0">{al.initials}</div>
               <div className="min-w-0">
                 <div className="text-base font-bold text-ink">{al.name}</div>
-                <div className="text-[13px] text-ink-soft">{al.goal}</div>
+                <div className="text-[13px] text-ink-soft">{al.goal || "Perfil ainda incompleto"}</div>
               </div>
             </div>
             <div className="flex gap-3.5 text-xs text-ink-softer pl-[60px]">
               <span>{al.freq}</span>
-              <span>Atualizado {al.last}</span>
+              {al.last && <span>Atualizado {al.last}</span>}
             </div>
             <button
               onClick={() => openPerfil(al.id)}
@@ -37,7 +65,188 @@ export function Alunas() {
             </button>
           </div>
         ))}
+        {filtered.length === 0 && <div className="text-center py-6 text-sm text-ink-soft">Nenhuma aluna encontrada.</div>}
       </div>
+
+      {state.addAlunaMode !== "closed" && (
+        <div className="fixed inset-0 z-30 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4" onClick={closeAddAluna}>
+          <div
+            className="w-full sm:max-w-[420px] bg-app rounded-t-[24px] sm:rounded-[24px] p-5 pb-7 flex flex-col gap-4 max-h-[88vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {state.addAlunaMode === "choose" && (
+              <>
+                <div className="font-serif text-[22px] text-ink">Adicionar aluna</div>
+                <button
+                  onClick={() => chooseAddAlunaMode("link")}
+                  className="text-left bg-white rounded-2xl p-4 flex items-center gap-3 cursor-pointer"
+                  style={{ border: "1.5px dashed #BC6B52" }}
+                >
+                  <div className="w-9 h-9 rounded-full bg-terracotta-pill flex items-center justify-center shrink-0">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a5 5 0 007 0l2-2a5 5 0 00-7-7l-1 1" />
+                      <path d="M14 11a5 5 0 00-7 0l-2 2a5 5 0 007 7l1-1" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-ink">Convidar por link</div>
+                    <div className="text-xs text-ink-soft mt-0.5">Digite só o nome e envie o link de triagem.</div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => chooseAddAlunaMode("manual")}
+                  className="text-left bg-white rounded-2xl p-4 flex items-center gap-3 cursor-pointer border border-border"
+                >
+                  <div className="w-9 h-9 rounded-full bg-sage-bg flex items-center justify-center shrink-0">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6F7D5E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-ink">Cadastro manual</div>
+                    <div className="text-xs text-ink-soft mt-0.5">Preencha os dados da aluna você mesma.</div>
+                  </div>
+                </button>
+                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
+                  Cancelar
+                </button>
+              </>
+            )}
+
+            {state.addAlunaMode === "link" && !state.addAlunaLinkUrl && (
+              <>
+                <div className="font-serif text-[22px] text-ink">Convidar por link</div>
+                <div>
+                  <label className="text-[13px] font-bold text-ink">Nome da aluna</label>
+                  <input
+                    autoFocus
+                    value={state.addAlunaDraft.name}
+                    onChange={(e) => setAddAlunaDraft({ name: e.target.value })}
+                    placeholder="ex: Mariana Costa"
+                    className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                  />
+                </div>
+                <button
+                  onClick={submitAddAlunaLink}
+                  disabled={state.addAlunaBusy || !state.addAlunaDraft.name.trim()}
+                  className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+                >
+                  {state.addAlunaBusy ? "Gerando link…" : "Gerar link de triagem"}
+                </button>
+                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
+                  Cancelar
+                </button>
+              </>
+            )}
+
+            {state.addAlunaMode === "link" && state.addAlunaLinkUrl && (
+              <>
+                <div className="font-serif text-[22px] text-ink">Link pronto!</div>
+                <div className="text-[13px] text-ink-soft">
+                  {state.addAlunaDraft.name.split(" ")[0]} preenche a triagem pelo próprio celular, 3–5 min.
+                </div>
+                <div className="bg-white border border-border rounded-[14px] px-4 py-3.5 text-[13px] text-ink break-all">{state.addAlunaLinkUrl}</div>
+                <button
+                  onClick={copyLink}
+                  className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer"
+                  style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+                >
+                  {copied ? "Copiado!" : "Copiar link"}
+                </button>
+                <button onClick={closeAddAluna} className="bg-white text-ink border border-border text-sm font-semibold py-3.5 rounded-full cursor-pointer">
+                  Concluir
+                </button>
+              </>
+            )}
+
+            {state.addAlunaMode === "manual" && (
+              <>
+                <div className="font-serif text-[22px] text-ink">Cadastro manual</div>
+                <div>
+                  <label className="text-[13px] font-bold text-ink">Nome</label>
+                  <input
+                    autoFocus
+                    value={state.addAlunaDraft.name}
+                    onChange={(e) => setAddAlunaDraft({ name: e.target.value })}
+                    placeholder="ex: Mariana Costa"
+                    className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                  />
+                </div>
+                <div>
+                  <label className="text-[13px] font-bold text-ink">Objetivo</label>
+                  <select
+                    value={state.addAlunaDraft.goal}
+                    onChange={(e) => setAddAlunaDraft({ goal: e.target.value })}
+                    className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                  >
+                    <option value="">Selecionar…</option>
+                    {OBJETIVOS.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[13px] font-bold text-ink">Frequência</label>
+                    <select
+                      value={state.addAlunaDraft.freq}
+                      onChange={(e) => setAddAlunaDraft({ freq: e.target.value })}
+                      className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                    >
+                      <option value="">—</option>
+                      {FREQUENCIAS.map((f) => (
+                        <option key={f} value={`${f} por semana`}>
+                          {f}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[13px] font-bold text-ink">Nível</label>
+                    <select
+                      value={state.addAlunaDraft.level}
+                      onChange={(e) => setAddAlunaDraft({ level: e.target.value })}
+                      className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                    >
+                      <option value="">—</option>
+                      <option value="Iniciante">Iniciante</option>
+                      <option value="Intermediária">Intermediária</option>
+                      <option value="Avançada">Avançada</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[13px] font-bold text-ink">Instagram (opcional)</label>
+                  <div className="mt-1.5 flex items-center gap-2 px-4 py-3.5 rounded-[14px] border border-border bg-white">
+                    <span className="text-ink-softer text-[15px]">@</span>
+                    <input
+                      value={state.addAlunaDraft.instagram}
+                      onChange={(e) => setAddAlunaDraft({ instagram: e.target.value.replace(/^@/, "") })}
+                      placeholder="usuario"
+                      className="flex-1 text-[15px] text-ink outline-none"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={submitAddAlunaManual}
+                  disabled={state.addAlunaBusy || !state.addAlunaDraft.name.trim()}
+                  className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+                >
+                  {state.addAlunaBusy ? "Salvando…" : "Salvar aluna"}
+                </button>
+                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
+                  Cancelar
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

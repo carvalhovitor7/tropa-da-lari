@@ -11,6 +11,7 @@ import { PlaceholderTab } from "./screens/PlaceholderTab";
 import { Perfil } from "./screens/Perfil";
 import { Iniciar } from "./screens/Iniciar";
 import { Modelos } from "./screens/Modelos";
+import { CriarModelo } from "./screens/CriarModelo";
 import { Montador } from "./screens/Montador";
 import { Busca } from "./screens/Busca";
 import { Config } from "./screens/Config";
@@ -44,6 +45,7 @@ export function AppShell() {
     perfil: ["ALUNA", aluna.name],
     iniciar: ["NOVO TREINO", "Como começar?"],
     modelos: ["MODELOS", "Meus modelos"],
+    "criar-modelo": ["MODELOS", "Salvar modelo"],
     montador: ["MONTADOR", `${aluna.firstName} • ${state.treinoName}`],
     busca: ["ADICIONAR", "Buscar exercício"],
     config: ["CONFIGURAR", state.cfg.exerciseName || "Exercício"],
@@ -78,6 +80,7 @@ export function AppShell() {
         {state.screen === "perfil" && <Perfil />}
         {state.screen === "iniciar" && <Iniciar />}
         {state.screen === "modelos" && <Modelos />}
+        {state.screen === "criar-modelo" && <CriarModelo />}
         {state.screen === "montador" && <Montador />}
         {state.screen === "busca" && <Busca />}
         {state.screen === "config" && <Config />}

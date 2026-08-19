@@ -1,20 +1,21 @@
 "use client";
 
 import { useEffect } from "react";
-import { ALUNAS, useApp } from "@/lib/store";
-
-const RECENT_TREINOS = [
-  { aluna: "Juliana Ferreira", treino: "Treino A • Inferiores", data: "14 ago" },
-  { aluna: "Camila Souza", treino: "Treino A • Hipertrofia", data: "10 ago" },
-];
+import { useApp } from "@/lib/store";
+import { treinoDateSummary } from "@/lib/dates";
 
 export function Dashboard() {
-  const { navTo, openPerfil, syncTriagens } = useApp();
+  const { state, navTo, openPerfil, openTreino, setAlunaId, syncTriagens } = useApp();
 
   useEffect(() => {
     syncTriagens();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
+
+  const recentTreinos = state.alunas
+    .flatMap((a) => a.treinos.map((t) => ({ aluna: a, treino: t })))
+    .sort((a, b) => new Date(b.treino.createdAt || 0).getTime() - new Date(a.treino.createdAt || 0).getTime())
+    .slice(0, 4);
 
   return (
     <div className="px-5 pt-5.5 pb-24 flex flex-col gap-6.5">
@@ -44,7 +45,9 @@ export function Dashboard() {
         </div>
         <div>
           <div className="text-[13px] font-bold text-ink">Sua semana</div>
-          <div className="text-xs text-ink-soft mt-0.5">4 treinos montados · 3 alunas atendidas</div>
+          <div className="text-xs text-ink-soft mt-0.5">
+            {recentTreinos.length} treinos montados · {state.alunas.filter((a) => a.hasTreinos).length} alunas atendidas
+          </div>
           <div className="flex gap-1 mt-2.5 items-end">
             {[
               { h: 10, c: "#E8ECE1" },
@@ -64,29 +67,34 @@ export function Dashboard() {
       <div>
         <div className="text-sm font-bold text-ink mb-2.5">Treinos recentes</div>
         <div className="flex flex-col gap-2.5">
-          {RECENT_TREINOS.map((rt, i) => (
-            <div key={i} className="bg-white rounded-2xl p-3.5 flex flex-col gap-2" style={{ boxShadow: "0 8px 20px -12px rgba(58,52,46,0.18)" }}>
+          {recentTreinos.map(({ aluna, treino }) => (
+            <div key={treino.id} className="bg-white rounded-2xl p-3.5 flex flex-col gap-2" style={{ boxShadow: "0 8px 20px -12px rgba(58,52,46,0.18)" }}>
               <div>
-                <div className="text-[15px] font-bold text-ink">{rt.aluna}</div>
+                <div className="text-[15px] font-bold text-ink">{aluna.name}</div>
                 <div className="text-[13px] text-ink-soft">
-                  {rt.treino} • atualizado {rt.data}
+                  {treino.name} • {treino.foco}
                 </div>
+                <div className="text-[11px] text-ink-softer mt-1">{treinoDateSummary(treino.createdAt, treino.sentAt)}</div>
               </div>
               <button
-                onClick={() => navTo("alunas")}
+                onClick={() => {
+                  setAlunaId(aluna.id);
+                  openTreino(treino);
+                }}
                 className="self-start bg-white border border-border text-terracotta text-[13px] font-bold px-3.5 py-2 rounded-full cursor-pointer"
               >
                 Continuar editando
               </button>
             </div>
           ))}
+          {recentTreinos.length === 0 && <div className="text-sm text-ink-soft">Nenhum treino montado ainda.</div>}
         </div>
       </div>
 
       <div>
         <div className="text-sm font-bold text-ink mb-2.5">Alunas recentes</div>
         <div className="flex gap-3.5 overflow-x-auto pb-1">
-          {ALUNAS.map((al) => (
+          {state.alunas.map((al) => (
             <button
               key={al.id}
               onClick={() => openPerfil(al.id)}

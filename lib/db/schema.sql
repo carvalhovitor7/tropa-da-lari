@@ -16,6 +16,11 @@ CREATE TABLE IF NOT EXISTS alunas (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Aluna's Instagram handle, stored without the leading "@" (item 3). Added
+-- after the initial schema, so it uses ADD COLUMN IF NOT EXISTS to stay
+-- safe to re-run against a database that already has the alunas table.
+ALTER TABLE alunas ADD COLUMN IF NOT EXISTS instagram TEXT NOT NULL DEFAULT '';
+
 -- One screening record per aluna. Submitting again (student resubmits, or
 -- Larissa fills it manually) overwrites the previous answers (see
 -- lib/triagemService.ts submitScreening -> ON CONFLICT (aluna_id) DO UPDATE).

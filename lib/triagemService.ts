@@ -1,6 +1,7 @@
 import { sql } from "./db";
 import { Aluna, TriagemDraft } from "./types";
 import { computeAlert } from "./screening";
+import { generateScreeningToken } from "./triagemToken";
 
 export interface AlunaRecord extends Aluna {
   screeningToken: string;
@@ -56,10 +57,73 @@ function alunaFromRow(row: Row): AlunaRecord {
     last: (row.last_session as string) ?? "",
     level: (row.level as string) ?? "",
     notes: (row.notes as string) ?? "",
+    instagram: (row.instagram as string) ?? "",
     hasTreinos: Boolean(row.has_treinos),
     treinos: [],
     screeningToken: row.screening_token as string,
   };
+}
+
+const DIACRITICS_RE = new RegExp("[" + String.fromCharCode(0x0300) + "-" + String.fromCharCode(0x036f) + "]", "g");
+
+function slugify(name: string): string {
+  return (
+    name
+      .normalize("NFD")
+      .replace(DIACRITICS_RE, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "aluna"
+  );
+}
+
+async function uniqueAlunaId(name: string): Promise<string> {
+  const base = slugify(name);
+  let candidate = base;
+  let n = 1;
+  // Small tables (a handful of alunas), so a simple existence-check loop is
+  // fine here — no need for a DB-side uniqueness generator.
+  for (;;) {
+    const { rows } = await sql`SELECT 1 FROM alunas WHERE id = ${candidate} LIMIT 1`;
+    if (rows.length === 0) return candidate;
+    n += 1;
+    candidate = `${base}-${n}`;
+  }
+}
+
+export interface NewAlunaInput {
+  name: string;
+  goal?: string;
+  freq?: string;
+  level?: string;
+  notes?: string;
+  instagram?: string;
+}
+
+// Used by POST /api/alunas — item 1 "Adicionar aluna". Covers both paths:
+// "Convidar por link" passes only `name` (rest of the profile stays empty
+// until the aluna does her own triagem); "Cadastro manual" passes the full
+// profile Larissa filled in herself. Either way a fresh unique
+// screening_token is generated so /triagem/[token] works immediately.
+export async function createAluna(input: NewAlunaInput): Promise<AlunaRecord> {
+  const name = input.name.trim();
+  if (!name) throw new Error("name_required");
+  const firstName = name.split(" ")[0] || name;
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("");
+  const id = await uniqueAlunaId(name);
+  const token = generateScreeningToken();
+
+  const { rows } = await sql`
+    INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, has_treinos, screening_token)
+    VALUES (${id}, ${name}, ${firstName}, ${initials}, ${input.goal ?? ""}, ${input.freq ?? ""}, ${""}, ${input.level ?? ""}, ${input.notes ?? ""}, ${input.instagram ?? ""}, FALSE, ${token})
+    RETURNING *
+  `;
+  return alunaFromRow(rows[0]);
 }
 
 // --- public API ---------------------------------------------------------

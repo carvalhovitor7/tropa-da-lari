@@ -31,8 +31,8 @@ async function main() {
   for (const aluna of ALUNAS) {
     const token = generateScreeningToken();
     await sql`
-      INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, has_treinos, screening_token)
-      VALUES (${aluna.id}, ${aluna.name}, ${aluna.firstName}, ${aluna.initials}, ${aluna.goal}, ${aluna.freq}, ${aluna.last}, ${aluna.level}, ${aluna.notes}, ${aluna.hasTreinos}, ${token})
+      INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, has_treinos, screening_token)
+      VALUES (${aluna.id}, ${aluna.name}, ${aluna.firstName}, ${aluna.initials}, ${aluna.goal}, ${aluna.freq}, ${aluna.last}, ${aluna.level}, ${aluna.notes}, ${aluna.instagram}, ${aluna.hasTreinos}, ${token})
       ON CONFLICT (id) DO NOTHING
     `;
     console.log(`  seeded aluna "${aluna.name}"`);

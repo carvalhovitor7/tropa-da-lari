@@ -46,7 +46,11 @@ export function Dashboard() {
         <div>
           <div className="text-[13px] font-bold text-ink">Sua semana</div>
           <div className="text-xs text-ink-soft mt-0.5">
-            {recentTreinos.length} treinos montados · {state.alunas.filter((a) => a.hasTreinos).length} alunos atendidos
+            {recentTreinos.length} treinos montados ·{" "}
+            {(() => {
+              const n = state.alunas.filter((a) => a.hasTreinos).length;
+              return `${n} ${n === 1 ? "aluno atendido" : "alunos atendidos"}`;
+            })()}
           </div>
           <div className="flex gap-1 mt-2.5 items-end">
             {[

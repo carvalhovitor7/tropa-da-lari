@@ -20,6 +20,34 @@ export function Dashboard() {
     .sort((a, b) => new Date(b.treino.createdAt || 0).getTime() - new Date(a.treino.createdAt || 0).getTime())
     .slice(0, 4);
 
+  const totalAlunos = state.alunas.length;
+
+  const generoCount = { feminino: 0, masculino: 0, nao_informado: 0 };
+  for (const a of state.alunas) generoCount[a.genero]++;
+  const generoSegments = [
+    { label: "mulheres", key: "feminino" as const, n: generoCount.feminino, color: "#7C4DBD" },
+    { label: "homens", key: "masculino" as const, n: generoCount.masculino, color: "#C9A0E8" },
+    { label: "não informado", key: "nao_informado" as const, n: generoCount.nao_informado, color: "#E7DFF5" },
+  ].filter((g) => g.n > 0);
+
+  const FAIXAS = [
+    { label: "até 20", test: (i: number) => i <= 20 },
+    { label: "21–30", test: (i: number) => i >= 21 && i <= 30 },
+    { label: "31–40", test: (i: number) => i >= 31 && i <= 40 },
+    { label: "41–50", test: (i: number) => i >= 41 && i <= 50 },
+    { label: "51+", test: (i: number) => i >= 51 },
+  ];
+  const faixaCounts = FAIXAS.map((f) => ({
+    label: f.label,
+    n: state.alunas.filter((a) => a.idade != null && f.test(a.idade)).length,
+  }));
+  const idadeNaoInformada = state.alunas.filter((a) => a.idade == null).length;
+  if (idadeNaoInformada > 0) faixaCounts.push({ label: "Idade não informada", n: idadeNaoInformada });
+  const topFaixas = faixaCounts
+    .filter((f) => f.n > 0)
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 3);
+
   return (
     <div className="px-5 pt-5.5 pb-24 flex flex-col gap-6.5">
       <div className="flex items-center gap-3.5">
@@ -91,6 +119,51 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {totalAlunos > 0 && (
+        <div className="bg-white rounded-[20px] p-4.5 flex flex-col gap-3.5" style={{ boxShadow: "0 10px 26px -14px rgba(58,52,46,0.2)" }}>
+          <div className="flex items-baseline gap-2">
+            <span className="font-serif text-[32px] leading-none text-ink">{totalAlunos}</span>
+            <span className="text-[13px] font-bold text-ink-soft">{totalAlunos === 1 ? "aluno no total" : "alunos no total"}</span>
+          </div>
+
+          {generoSegments.length > 0 && (
+            <div>
+              <div className="text-xs font-bold text-ink-soft mb-1.5">Gênero</div>
+              <div className="flex w-full h-2 rounded-full overflow-hidden" style={{ background: "#EDE7FA" }}>
+                {generoSegments.map((g) => (
+                  <div key={g.key} style={{ width: `${(g.n / totalAlunos) * 100}%`, background: g.color }} />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
+                {generoSegments.map((g) => (
+                  <div key={g.key} className="flex items-center gap-1.5 text-[11px] text-ink-soft">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: g.color }} />
+                    {Math.round((g.n / totalAlunos) * 100)}% {g.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {topFaixas.length > 0 && (
+            <div>
+              <div className="text-xs font-bold text-ink-soft mb-1.5">Faixa etária</div>
+              <div className="flex flex-wrap gap-1.5">
+                {topFaixas.map((f) => (
+                  <div
+                    key={f.label}
+                    className="text-[11px] font-semibold text-ink px-2.5 py-1 rounded-full"
+                    style={{ background: "#F3EEFB" }}
+                  >
+                    {f.label} · {f.n}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div>
         <div className="text-sm font-bold text-ink mb-2.5">Treinos recentes</div>

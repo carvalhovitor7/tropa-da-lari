@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Genero, TriagemDraft, emptyDraft } from "@/lib/types";
 import { TriagemFormApi, TriagemFormContext } from "@/lib/triagemForm";
+import { Chip } from "@/components/ui/Chip";
 import { StepPerfil } from "./StepPerfil";
 import { StepDor } from "./StepDor";
 import { StepLesoes } from "./StepLesoes";
@@ -10,6 +11,12 @@ import { StepCirurgias } from "./StepCirurgias";
 import { StepAcompanhamento } from "./StepAcompanhamento";
 import { StepSaude } from "./StepSaude";
 import { StepResumo } from "./StepResumo";
+
+const GENERO_OPTIONS: [Genero, string][] = [
+  ["feminino", "Feminino"],
+  ["masculino", "Masculino"],
+  ["nao_informado", "Prefiro não dizer"],
+];
 
 const STEPS: { title: string; Comp: React.ComponentType }[] = [
   { title: "Objetivo e experiência", Comp: StepPerfil },
@@ -27,13 +34,27 @@ type Stage = "intro" | number | "resumo" | "submitting" | "done" | "error";
 // design tokens) as Larissa's in-app manual triagem, but drives them off a
 // local draft instead of the global store, and ends in "Enviar" -> thank-you
 // instead of Larissa's internal "Revisão" step.
-export function StudentTriagemFlow({ token, firstName, genero }: { token: string; firstName: string; genero: Genero }) {
+export function StudentTriagemFlow({
+  token,
+  firstName,
+  genero: initialGenero,
+}: {
+  token: string;
+  firstName: string;
+  genero: Genero;
+}) {
   const [draft, setDraftState] = useState<TriagemDraft>(emptyDraft);
   const [stage, setStage] = useState<Stage>("intro");
   const [errorMsg, setErrorMsg] = useState("");
   // Item 8: optional WhatsApp number the student can add herself, sent
   // alongside the screening answers and landed on her profile the same way.
   const [whatsapp, setWhatsapp] = useState("");
+  // Lets a student who was invited by link (and so has no idade/genero on
+  // file yet) fill both in herself on the intro screen. Seeded from
+  // whatever Larissa may already have on file, and drives the
+  // gender-aware copy in the rest of this flow too.
+  const [idade, setIdade] = useState("");
+  const [genero, setGenero] = useState<Genero>(initialGenero);
 
   const setDraft = (field: keyof TriagemDraft, value: unknown) =>
     setDraftState((d) => ({ ...d, [field]: value }));
@@ -75,10 +96,17 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
   const submit = async () => {
     setStage("submitting");
     try {
+      const n = Number.parseInt(idade, 10);
       const res = await fetch(`/api/triagem/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...draft, completedAt: new Date().toISOString(), whatsapp }),
+        body: JSON.stringify({
+          ...draft,
+          completedAt: new Date().toISOString(),
+          whatsapp,
+          idade: Number.isFinite(n) && n > 0 ? n : undefined,
+          genero,
+        }),
       });
       if (!res.ok) throw new Error("request_failed");
       setStage("done");
@@ -91,7 +119,16 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
   return (
     <div className="mx-auto w-full max-w-[430px] min-h-dvh bg-app flex flex-col relative shadow-2xl">
       {stage === "intro" && (
-        <Intro firstName={firstName} whatsapp={whatsapp} onWhatsappChange={setWhatsapp} onStart={() => setStage(0)} />
+        <Intro
+          firstName={firstName}
+          whatsapp={whatsapp}
+          onWhatsappChange={setWhatsapp}
+          idade={idade}
+          onIdadeChange={setIdade}
+          genero={genero}
+          onGeneroChange={setGenero}
+          onStart={() => setStage(0)}
+        />
       )}
 
       {(typeof stage === "number" || stage === "resumo") && (
@@ -172,11 +209,19 @@ function Intro({
   firstName,
   whatsapp,
   onWhatsappChange,
+  idade,
+  onIdadeChange,
+  genero,
+  onGeneroChange,
   onStart,
 }: {
   firstName: string;
   whatsapp: string;
   onWhatsappChange: (v: string) => void;
+  idade: string;
+  onIdadeChange: (v: string) => void;
+  genero: Genero;
+  onGeneroChange: (v: Genero) => void;
   onStart: () => void;
 }) {
   return (
@@ -197,6 +242,27 @@ function Intro({
       <div className="bg-white rounded-2xl p-4 text-[13px] text-ink-soft leading-relaxed" style={{ boxShadow: "0 8px 20px -14px rgba(58,52,46,0.2)" }}>
         Isto não substitui avaliação médica ou fisioterapêutica. Suas respostas servem apenas de apoio para a Lari
         montar seu treino.
+      </div>
+      <div className="bg-white rounded-2xl p-4 flex flex-col gap-4" style={{ boxShadow: "0 8px 20px -14px rgba(58,52,46,0.2)" }}>
+        <div>
+          <label className="text-[13px] font-bold text-ink">Gênero</label>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {GENERO_OPTIONS.map(([value, label]) => (
+              <Chip key={value} small label={label} active={genero === value} onClick={() => onGeneroChange(value)} />
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-[13px] font-bold text-ink">Idade</label>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={idade}
+            onChange={(e) => onIdadeChange(e.target.value)}
+            placeholder="anos"
+            className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+          />
+        </div>
       </div>
       <div className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 8px 20px -14px rgba(58,52,46,0.2)" }}>
         <label className="text-[13px] font-bold text-ink">Seu WhatsApp (opcional)</label>

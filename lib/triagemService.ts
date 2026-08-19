@@ -144,16 +144,21 @@ export async function createAluna(input: NewAlunaInput): Promise<AlunaRecord> {
 }
 
 // Used by PATCH /api/alunas/[id] — lets Larissa edit idade/local/whatsapp
-// (and instagram, already handled client-side/locally) from Perfil.tsx.
+// (and instagram, already handled client-side/locally) from Perfil.tsx, as
+// well as genero — needed so she can fill it in for any aluno who hasn't
+// provided it yet (seeded alunas, alunos added before this field existed,
+// or a student who skipped it during triagem).
 export async function updateAluna(
   id: string,
-  patch: { idade?: number | null; local?: string; whatsapp?: string }
+  patch: { idade?: number | null; local?: string; whatsapp?: string; genero?: Genero }
 ): Promise<AlunaRecord | null> {
+  const genero = patch.genero ? normalizeGenero(patch.genero) : null;
   const { rows } = await sql`
     UPDATE alunas SET
       idade = COALESCE(${patch.idade ?? null}, idade),
       local = COALESCE(${patch.local ?? null}, local),
-      whatsapp = COALESCE(${patch.whatsapp ?? null}, whatsapp)
+      whatsapp = COALESCE(${patch.whatsapp ?? null}, whatsapp),
+      genero = COALESCE(${genero}, genero)
     WHERE id = ${id}
     RETURNING *
   `;
@@ -162,15 +167,26 @@ export async function updateAluna(
 }
 
 // Used by POST /api/triagem/[token] — item 8: lets a student fill in her
-// own WhatsApp number as part of the standalone screening flow, landing it
-// on her profile the same way the rest of the triagem data does. Only
-// updates the column when a non-empty value is provided, so resubmitting
-// the triagem without touching this field never blanks out a number
-// Larissa may have entered manually.
-export async function updateAlunaWhatsappByToken(token: string, whatsapp: string): Promise<void> {
-  const trimmed = whatsapp.trim();
-  if (!trimmed) return;
-  await sql`UPDATE alunas SET whatsapp = ${trimmed} WHERE screening_token = ${token}`;
+// own WhatsApp number, idade and genero as part of the standalone screening
+// flow, landing them on her profile the same way the rest of the triagem
+// data does. Each field only overwrites the column when a real value is
+// provided, so resubmitting the triagem without touching a field never
+// blanks out something Larissa may have entered manually.
+export async function updateAlunaProfileByToken(
+  token: string,
+  patch: { whatsapp?: string; idade?: number | null; genero?: Genero }
+): Promise<void> {
+  const whatsapp = patch.whatsapp?.trim() || null;
+  const idade = typeof patch.idade === "number" && Number.isFinite(patch.idade) && patch.idade > 0 ? patch.idade : null;
+  const genero = patch.genero ? normalizeGenero(patch.genero) : null;
+  if (!whatsapp && !idade && !genero) return;
+  await sql`
+    UPDATE alunas SET
+      whatsapp = COALESCE(${whatsapp}, whatsapp),
+      idade = COALESCE(${idade}, idade),
+      genero = COALESCE(${genero}, genero)
+    WHERE screening_token = ${token}
+  `;
 }
 
 // Used by DELETE /api/alunas/[id] — item "Excluir aluno". Deleting the row

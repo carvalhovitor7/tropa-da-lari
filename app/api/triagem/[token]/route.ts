@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAlunaByToken, submitScreening, updateAlunaWhatsappByToken } from "@/lib/triagemService";
-import { TriagemDraft } from "@/lib/types";
+import { getAlunaByToken, submitScreening, updateAlunaProfileByToken } from "@/lib/triagemService";
+import { Genero, TriagemDraft } from "@/lib/types";
 
 // Talks to Postgres on every request — must never be statically generated.
 export const dynamic = "force-dynamic";
@@ -38,10 +38,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
   }
 
   try {
-    const { whatsapp, ...draft } = body as TriagemDraft & { whatsapp?: string };
+    const { whatsapp, idade, genero, ...draft } = body as TriagemDraft & {
+      whatsapp?: string;
+      idade?: number;
+      genero?: Genero;
+    };
     const ok = await submitScreening(token, draft as TriagemDraft);
     if (!ok) return NextResponse.json({ error: "not_found" }, { status: 404 });
-    if (typeof whatsapp === "string") await updateAlunaWhatsappByToken(token, whatsapp);
+    await updateAlunaProfileByToken(token, { whatsapp, idade, genero });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[api/triagem/:token] POST failed", err);

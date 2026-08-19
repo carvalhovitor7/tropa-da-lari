@@ -9,6 +9,7 @@ import {
   AppState,
   DEFAULT_SETTINGS,
   Exercise,
+  Genero,
   Modelo,
   ScreenKey,
   TRIAGEM_STEPS,
@@ -157,7 +158,7 @@ interface AppApi {
   submitAddAlunaLink: () => Promise<void>;
   submitAddAlunaManual: () => Promise<void>;
   updateAlunaInstagram: (id: string, instagram: string) => void;
-  updateAlunaProfile: (id: string, patch: { idade?: number; local?: string; whatsapp?: string }) => void;
+  updateAlunaProfile: (id: string, patch: { idade?: number; local?: string; whatsapp?: string; genero?: Genero }) => void;
   deleteAluna: (id: string) => Promise<boolean>;
   // "Criar modelo" (item 2)
   onCriarModelo: () => void;
@@ -794,7 +795,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Updates idade/local locally and best-effort persists to Postgres via
   // PATCH /api/alunas/[id] (item: printable ficha "DADOS DO ALUNO" fields).
-  const updateAlunaProfile = useCallback((id: string, patch: { idade?: number; local?: string; whatsapp?: string }) => {
+  const updateAlunaProfile = useCallback((id: string, patch: { idade?: number; local?: string; whatsapp?: string; genero?: Genero }) => {
     setState((s) => ({ ...s, alunas: s.alunas.map((a) => (a.id === id ? { ...a, ...patch } : a)) }));
     fetch(`/api/alunas/${id}`, {
       method: "PATCH",

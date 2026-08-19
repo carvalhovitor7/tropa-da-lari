@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteAluna, getAluna, updateAluna } from "@/lib/triagemService";
+import { Genero } from "@/lib/types";
 
 // Talks to Postgres on every request — must never be statically generated.
 export const dynamic = "force-dynamic";
@@ -18,8 +19,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 }
 
-// PATCH /api/alunas/[id] — updates idade/local for the printable ficha's
-// "DADOS DO ALUNO" card (Perfil.tsx / manual-add flow).
+// PATCH /api/alunas/[id] — updates idade/local/genero for the printable
+// ficha's "DADOS DO ALUNO" card (Perfil.tsx / manual-add flow), and lets
+// Larissa fill in genero/idade for any aluno who hasn't provided them yet
+// (seeded alunas, alunos added before these fields existed, or a student
+// who skipped them during triagem).
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let body: unknown;
@@ -28,9 +32,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
-  const input = (body ?? {}) as { idade?: number; local?: string; whatsapp?: string };
+  const input = (body ?? {}) as { idade?: number; local?: string; whatsapp?: string; genero?: Genero };
   try {
-    const aluna = await updateAluna(id, { idade: input.idade ?? null, local: input.local, whatsapp: input.whatsapp });
+    const aluna = await updateAluna(id, {
+      idade: input.idade ?? null,
+      local: input.local,
+      whatsapp: input.whatsapp,
+      genero: input.genero,
+    });
     if (!aluna) return NextResponse.json({ error: "not_found" }, { status: 404 });
     return NextResponse.json({ aluna });
   } catch (err) {

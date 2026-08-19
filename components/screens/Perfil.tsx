@@ -5,6 +5,14 @@ import { currentAluna, useApp } from "@/lib/store";
 import { computeAlert, computeWarnings } from "@/lib/screening";
 import { treinoDateSummary } from "@/lib/dates";
 import { agree, alunoNoun } from "@/lib/gender";
+import { Chip } from "@/components/ui/Chip";
+import { Genero } from "@/lib/types";
+
+const GENERO_OPTIONS: [Genero, string][] = [
+  ["feminino", "Feminino"],
+  ["masculino", "Masculino"],
+  ["nao_informado", "Prefiro não dizer"],
+];
 
 export function Perfil() {
   const {
@@ -73,6 +81,11 @@ export function Perfil() {
     updateAlunaProfile(aluna.id, { idade: Number.isFinite(n) && n > 0 ? n : undefined });
     setEditingIdade(false);
     toast("Idade atualizada.");
+  };
+
+  const saveGenero = (genero: Genero) => {
+    updateAlunaProfile(aluna.id, { genero });
+    toast("Gênero atualizado.");
   };
 
   const saveLocal = () => {
@@ -242,6 +255,15 @@ export function Perfil() {
               {aluna.local || <span className="text-ink-soft font-normal">+ adicionar</span>}
             </button>
           )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.18)" }}>
+        <div className="text-[11px] text-ink-softer font-bold uppercase tracking-wide">Gênero</div>
+        <div className="mt-1.5 flex flex-wrap gap-2">
+          {GENERO_OPTIONS.map(([value, label]) => (
+            <Chip key={value} small label={label} active={aluna.genero === value} onClick={() => saveGenero(value)} />
+          ))}
         </div>
       </div>
 

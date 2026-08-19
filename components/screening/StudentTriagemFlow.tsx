@@ -98,7 +98,7 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
                 aria-label="Voltar"
                 className="w-11 h-11 rounded-full border border-border bg-white flex items-center justify-center cursor-pointer shrink-0"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3A342E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#362F52" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 19l-7-7 7-7" />
                 </svg>
               </button>
@@ -112,7 +112,7 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
 
             <div className="px-5 pt-1 shrink-0">
               <div className="h-1 rounded-full bg-border overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${progress}%`, background: "#BC6B52" }} />
+                <div className="h-full rounded-full" style={{ width: `${progress}%`, background: "#7C4DBD" }} />
               </div>
             </div>
 
@@ -127,7 +127,7 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
               <button
                 onClick={stage === "resumo" ? submit : goNext}
                 className="w-full text-white border-none text-base font-bold py-4 rounded-full cursor-pointer"
-                style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+                style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
               >
                 {stage === "resumo" ? "Enviar" : "Continuar"}
               </button>
@@ -148,7 +148,7 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
           <button
             onClick={submit}
             className="text-white border-none text-[15px] font-bold px-6 py-3.5 rounded-full cursor-pointer"
-            style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+            style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
           >
             Tentar novamente
           </button>
@@ -164,7 +164,7 @@ function Intro({ firstName, onStart }: { firstName: string; onStart: () => void 
   return (
     <div className="px-5 pt-8 pb-10 flex flex-col gap-5 flex-1">
       <div className="w-13 h-13 rounded-2xl bg-sage-bg flex items-center justify-center">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6F7D5E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5B4E9E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 11l3 3L22 4" />
           <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
         </svg>
@@ -184,7 +184,7 @@ function Intro({ firstName, onStart }: { firstName: string; onStart: () => void 
       <button
         onClick={onStart}
         className="w-full text-white border-none text-base font-bold py-4 rounded-full cursor-pointer"
-        style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+        style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
       >
         Começar
       </button>
@@ -196,7 +196,7 @@ function ThankYou({ firstName }: { firstName: string }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-5.5 p-10 text-center">
       <div className="w-18 h-18 rounded-full bg-sage-bg flex items-center justify-center">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6F7D5E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5B4E9E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 6L9 17l-5-5" />
         </svg>
       </div>

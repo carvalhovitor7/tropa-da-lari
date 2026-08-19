@@ -3,7 +3,7 @@
 import { currentAluna, useApp } from "@/lib/store";
 
 export function Revisao() {
-  const { state, goTo, approve } = useApp();
+  const { state, goTo, approve, setTreinoEnfase, setTreinoObsTreinadora } = useApp();
   const aluna = currentAluna(state);
 
   return (
@@ -13,6 +13,26 @@ export function Revisao() {
         <div className="text-sm text-ink-soft">
           {state.treinoName} — {state.treinoFoco}
         </div>
+      </div>
+
+      <div>
+        <div className="text-[13px] font-bold text-ink mb-2">Ênfase deste treino (aparece na ficha)</div>
+        <input
+          value={state.treinoEnfase}
+          onChange={(e) => setTreinoEnfase(e.target.value)}
+          placeholder="ex: Glúteos e posteriores"
+          className="w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-sm text-ink"
+        />
+      </div>
+
+      <div>
+        <div className="text-[13px] font-bold text-ink mb-2">Observação da treinadora (aparece na ficha)</div>
+        <textarea
+          value={state.treinoObsTreinadora}
+          onChange={(e) => setTreinoObsTreinadora(e.target.value)}
+          placeholder="ex: Priorize a execução antes de aumentar a carga."
+          className="w-full min-h-[70px] px-4 py-3.5 rounded-[14px] border border-border bg-white text-sm text-ink resize-none"
+        />
       </div>
 
       {!!state.weeklyRepTargets.length && (
@@ -38,7 +58,7 @@ export function Revisao() {
               <div className="text-[15px] font-bold text-ink">{ex.name}</div>
               <div className="text-[13px] font-bold text-sage mt-0.5">
                 {ex.series} × {ex.reps}
-                {!!ex.carga && <span className="text-terracotta"> • {ex.carga} kg</span>}
+                {!!ex.carga && <span className="text-terracotta"> • {ex.carga}</span>}
                 <span className="text-ink-softer font-semibold"> • {ex.descanso}</span>
               </div>
             </div>

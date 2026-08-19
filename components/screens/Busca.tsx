@@ -58,7 +58,7 @@ export function Busca() {
                     key={sa.name}
                     onClick={() => selectExercise(sa.name)}
                     className="text-left bg-white rounded-[14px] px-3.5 py-3 cursor-pointer"
-                    style={{ border: "1px solid #E8ECE1" }}
+                    style={{ border: "1px solid #EDE7FA" }}
                   >
                     <div className="text-sm font-bold text-ink">{sa.name}</div>
                     <div className="text-xs text-sage mt-1 leading-relaxed">{sa.reason}</div>
@@ -73,7 +73,7 @@ export function Busca() {
                     key={se.name}
                     onClick={() => selectExercise(se.name)}
                     className="text-left rounded-[14px] px-3.5 py-3 cursor-pointer"
-                    style={{ background: "#FBF3EF", border: "1px solid #F1D9CD" }}
+                    style={{ background: "#F6F0FC", border: "1px solid #DCC6EF" }}
                   >
                     <div className="text-sm font-bold text-ink">{se.name}</div>
                     <div className="text-xs text-terracotta mt-1 leading-relaxed">{se.reason}</div>

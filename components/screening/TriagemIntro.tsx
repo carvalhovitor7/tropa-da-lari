@@ -10,7 +10,7 @@ export function TriagemIntro() {
   return (
     <div className="px-5 pt-2 pb-10 flex flex-col gap-5 flex-1">
       <div className="w-13 h-13 rounded-2xl bg-sage-bg flex items-center justify-center">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6F7D5E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5B4E9E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 11l3 3L22 4" />
           <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
         </svg>
@@ -29,7 +29,7 @@ export function TriagemIntro() {
       <button
         onClick={onTriagemIniciar}
         className="w-full text-white border-none text-base font-bold py-4 rounded-full cursor-pointer"
-        style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+        style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
       >
         Começar triagem
       </button>

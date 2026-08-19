@@ -83,25 +83,32 @@ export const TEMPOS = ["até 30 min", "30–45 min", "45–60 min", "mais de 60 
 
 // 40+ seeded exercises used to hydrate demo/template workouts with real
 // sets/reps/rest, covering all major muscle groups and equipment types.
+// videoUrl uses a YouTube search URL for each exercise name in Portuguese
+// — an honest, always-valid fallback since we can't verify a specific
+// video ID actually exists/stays online (see item: YouTube links).
+function ytSearch(query: string): string {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query + " execução")}`;
+}
+
 export const DEMO_EXERCISES: Exercise[] = [
-  { id: "ex-1", name: "Agachamento Livre", series: 4, reps: "10", carga: "40", descanso: "90s", obs: "" },
-  { id: "ex-2", name: "Leg Press 45°", series: 4, reps: "12", carga: "100", descanso: "60s", obs: "" },
-  { id: "ex-3", name: "Afundo", series: 3, reps: "10", carga: "", descanso: "60s", obs: "Descer controlando o movimento." },
-  { id: "ex-4", name: "Cadeira Extensora", series: 3, reps: "12", carga: "30", descanso: "60s", obs: "" },
-  { id: "ex-5", name: "Stiff", series: 3, reps: "10", carga: "30", descanso: "90s", obs: "" },
-  { id: "ex-6", name: "Cadeira Flexora", series: 3, reps: "12", carga: "25", descanso: "60s", obs: "" },
-  { id: "ex-7", name: "Elevação Pélvica", series: 4, reps: "12", carga: "50", descanso: "60s", obs: "" },
-  { id: "ex-8", name: "Panturrilha em Pé", series: 4, reps: "15", carga: "40", descanso: "45s", obs: "" },
-  { id: "ex-9", name: "Puxada Frente", series: 3, reps: "10", carga: "35", descanso: "90s", obs: "" },
-  { id: "ex-10", name: "Remada Baixa", series: 3, reps: "12", carga: "30", descanso: "60s", obs: "" },
-  { id: "ex-11", name: "Supino Reto", series: 4, reps: "10", carga: "20", descanso: "90s", obs: "" },
-  { id: "ex-12", name: "Crucifixo", series: 3, reps: "12", carga: "10", descanso: "60s", obs: "" },
-  { id: "ex-13", name: "Desenvolvimento", series: 3, reps: "10", carga: "8", descanso: "60s", obs: "" },
-  { id: "ex-14", name: "Elevação Lateral", series: 3, reps: "15", carga: "5", descanso: "45s", obs: "" },
-  { id: "ex-15", name: "Rosca Direta", series: 3, reps: "12", carga: "8", descanso: "45s", obs: "" },
-  { id: "ex-16", name: "Tríceps Corda", series: 3, reps: "12", carga: "15", descanso: "45s", obs: "" },
-  { id: "ex-17", name: "Prancha", series: 3, reps: "30 segundos", carga: "", descanso: "45s", obs: "" },
-  { id: "ex-18", name: "Abdominal Supra", series: 3, reps: "15", carga: "", descanso: "45s", obs: "" },
+  { id: "ex-1", name: "Agachamento Livre", series: 4, reps: "10", carga: "40", descanso: "90s", obs: "", videoUrl: ytSearch("Agachamento livre") },
+  { id: "ex-2", name: "Leg Press 45°", series: 4, reps: "12", carga: "100", descanso: "60s", obs: "", videoUrl: ytSearch("Leg press 45 graus") },
+  { id: "ex-3", name: "Afundo", series: 3, reps: "10", carga: "", descanso: "60s", obs: "Descer controlando o movimento.", videoUrl: ytSearch("Afundo") },
+  { id: "ex-4", name: "Cadeira Extensora", series: 3, reps: "12", carga: "30", descanso: "60s", obs: "", videoUrl: ytSearch("Cadeira extensora") },
+  { id: "ex-5", name: "Stiff", series: 3, reps: "10", carga: "30", descanso: "90s", obs: "", videoUrl: ytSearch("Stiff levantamento terra romeno") },
+  { id: "ex-6", name: "Cadeira Flexora", series: 3, reps: "12", carga: "25", descanso: "60s", obs: "", videoUrl: ytSearch("Cadeira flexora") },
+  { id: "ex-7", name: "Elevação Pélvica", series: 4, reps: "12", carga: "50", descanso: "60s", obs: "", videoUrl: ytSearch("Elevação pélvica hip thrust") },
+  { id: "ex-8", name: "Panturrilha em Pé", series: 4, reps: "15", carga: "40", descanso: "45s", obs: "", videoUrl: ytSearch("Panturrilha em pé") },
+  { id: "ex-9", name: "Puxada Frente", series: 3, reps: "10", carga: "35", descanso: "90s", obs: "", videoUrl: ytSearch("Puxada frente") },
+  { id: "ex-10", name: "Remada Baixa", series: 3, reps: "12", carga: "30", descanso: "60s", obs: "", videoUrl: ytSearch("Remada baixa") },
+  { id: "ex-11", name: "Supino Reto", series: 4, reps: "10", carga: "20", descanso: "90s", obs: "", videoUrl: ytSearch("Supino reto") },
+  { id: "ex-12", name: "Crucifixo", series: 3, reps: "12", carga: "10", descanso: "60s", obs: "", videoUrl: ytSearch("Crucifixo") },
+  { id: "ex-13", name: "Desenvolvimento", series: 3, reps: "10", carga: "8", descanso: "60s", obs: "", videoUrl: ytSearch("Desenvolvimento de ombros") },
+  { id: "ex-14", name: "Elevação Lateral", series: 3, reps: "15", carga: "5", descanso: "45s", obs: "", videoUrl: ytSearch("Elevação lateral") },
+  { id: "ex-15", name: "Rosca Direta", series: 3, reps: "12", carga: "8", descanso: "45s", obs: "", videoUrl: ytSearch("Rosca direta") },
+  { id: "ex-16", name: "Tríceps Corda", series: 3, reps: "12", carga: "15", descanso: "45s", obs: "", videoUrl: ytSearch("Tríceps corda") },
+  { id: "ex-17", name: "Prancha", series: 3, reps: "30 segundos", carga: "", descanso: "45s", obs: "", videoUrl: ytSearch("Prancha abdominal") },
+  { id: "ex-18", name: "Abdominal Supra", series: 3, reps: "15", carga: "", descanso: "45s", obs: "", videoUrl: ytSearch("Abdominal supra") },
   { id: "ex-19", name: "Esteira", series: 1, reps: "20 minutos", carga: "", descanso: "-", obs: "Ritmo moderado." },
   { id: "ex-20", name: "Bike", series: 1, reps: "15 minutos", carga: "", descanso: "-", obs: "" },
 ];

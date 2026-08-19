@@ -47,7 +47,7 @@ export function Montador() {
                 ))}
               </div>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#BC6B52" strokeWidth={2.2} strokeLinecap="round" className="shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C4DBD" strokeWidth={2.2} strokeLinecap="round" className="shrink-0">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
@@ -68,14 +68,24 @@ export function Montador() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[15px] font-bold text-ink">{ex.name}</div>
-                <div className="flex gap-3.5 mt-1.5 text-[13px] font-bold text-sage">
+                <div className="flex gap-3.5 mt-1.5 text-[13px] font-bold text-sage flex-wrap">
                   <span>
                     {ex.series} × {ex.reps}
                   </span>
-                  {!!ex.carga && <span className="text-terracotta">{ex.carga} kg</span>}
+                  {!!ex.carga && <span className="text-terracotta">{ex.carga}</span>}
                   <span className="text-ink-softer font-semibold">{ex.descanso}</span>
                 </div>
                 {ex.obs && <div className="text-xs text-ink-softer mt-1 italic">{ex.obs}</div>}
+                {ex.videoUrl && (
+                  <a
+                    href={ex.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 mt-1.5 text-xs font-bold text-terracotta no-underline"
+                  >
+                    ▶ Ver execução
+                  </a>
+                )}
                 <div className="flex gap-1.5 mt-1 -ml-2">
                   <button onClick={() => editExercise(ex)} className="bg-transparent border-none px-2 py-3 min-h-11 text-xs font-bold text-ink cursor-pointer">
                     Editar
@@ -108,9 +118,9 @@ export function Montador() {
         <button
           onClick={openBusca}
           className="w-full bg-white text-terracotta text-[15px] font-bold py-4 rounded-2xl cursor-pointer flex items-center justify-center gap-2"
-          style={{ border: "1.5px dashed #BC6B52" }}
+          style={{ border: "1.5px dashed #7C4DBD" }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2.4} strokeLinecap="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4C3A9E" strokeWidth={2.4} strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>

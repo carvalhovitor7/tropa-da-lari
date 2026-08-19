@@ -54,7 +54,7 @@ export function CriarModelo() {
           onClick={saveModelo}
           disabled={!state.modeloDraft.name.trim() || state.exercises.length === 0}
           className="text-white border-none text-base font-bold py-4 rounded-full cursor-pointer disabled:opacity-50"
-          style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+          style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
         >
           Salvar modelo
         </button>

@@ -27,6 +27,11 @@ ALTER TABLE alunas ADD COLUMN IF NOT EXISTS instagram TEXT NOT NULL DEFAULT '';
 -- stay valid without a backfill.
 ALTER TABLE alunas ADD COLUMN IF NOT EXISTS genero TEXT NOT NULL DEFAULT 'nao_informado';
 
+-- Age (years) and training location, shown on the printable ficha's "DADOS
+-- DO ALUNO" card. Both optional/free-text so existing rows stay valid.
+ALTER TABLE alunas ADD COLUMN IF NOT EXISTS idade INTEGER;
+ALTER TABLE alunas ADD COLUMN IF NOT EXISTS local TEXT NOT NULL DEFAULT '';
+
 -- One screening record per aluna. Submitting again (student resubmits, or
 -- Larissa fills it manually) overwrites the previous answers (see
 -- lib/triagemService.ts submitScreening -> ON CONFLICT (aluna_id) DO UPDATE).

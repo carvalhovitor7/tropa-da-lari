@@ -27,7 +27,7 @@ export function TriagemStep() {
     <div className="flex flex-col flex-1 min-h-0">
       <div className="px-5 pt-1 shrink-0">
         <div className="h-1 rounded-full bg-border overflow-hidden">
-          <div className="h-full rounded-full" style={{ width: `${progress}%`, background: "#BC6B52" }} />
+          <div className="h-full rounded-full" style={{ width: `${progress}%`, background: "#7C4DBD" }} />
         </div>
       </div>
 
@@ -46,7 +46,7 @@ export function TriagemStep() {
         <button
           onClick={onTriagemAvancar}
           className="w-full text-white border-none text-base font-bold py-4 rounded-full cursor-pointer"
-          style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+          style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
         >
           {label}
         </button>

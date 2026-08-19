@@ -49,9 +49,9 @@ export function StepDor() {
                       onClick={() => setIntensidade(r, n)}
                       className="w-6.5 h-6.5 rounded-[7px] text-[11px] font-bold cursor-pointer"
                       style={{
-                        background: active ? "#BC6B52" : "#FFFFFF",
-                        color: active ? "#FFFFFF" : "#3A342E",
-                        border: `1px solid ${active ? "#BC6B52" : "#E8DDD0"}`,
+                        background: active ? "#7C4DBD" : "#FFFFFF",
+                        color: active ? "#FFFFFF" : "#362F52",
+                        border: `1px solid ${active ? "#7C4DBD" : "#E4DAF6"}`,
                       }}
                     >
                       {n}

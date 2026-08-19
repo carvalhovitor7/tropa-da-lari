@@ -43,6 +43,10 @@ export interface Exercise {
   carga: string;
   descanso: string;
   obs: string;
+  // Optional link to a YouTube demonstration of the exercise, shown as a
+  // "▶ Ver execução" link in the builder and as a clickable link on the
+  // printable ficha (item: YouTube links per exercise).
+  videoUrl?: string;
 }
 
 // A weekly total-rep emphasis target for a muscle group, independent of the
@@ -68,6 +72,13 @@ export interface Treino {
   sentAt?: string; // ISO date string — set when actually shared with the aluna
   weeklyRepTargets?: WeeklyRepTarget[];
   versions?: TreinoVersion[];
+  // Short free-text muscle-group emphasis shown as the parenthetical
+  // subtitle on the printable ficha, e.g. "Glúteos e posteriores" under a
+  // "INFERIORES" foco. Optional — falls back to the foco alone when unset.
+  enfase?: string;
+  // Larissa's free-text notes for this specific treino, shown in the
+  // "OBSERVAÇÃO DA TREINADORA" footer band of the printable ficha.
+  observacoesTreinadora?: string;
 }
 
 // Self-reported/entered gender, used only to pick correct grammatical
@@ -90,6 +101,11 @@ export interface Aluna {
   genero: Genero;
   hasTreinos: boolean;
   treinos: Treino[];
+  // Age in years, shown on the printable ficha's "DADOS DO ALUNO" card.
+  idade?: number;
+  // Free-text training location (e.g. "Academia completa", "Casa", "Ar
+  // livre"), also shown on the printable ficha.
+  local?: string;
 }
 
 // A custom, Larissa-authored workout template (item 2 "Criar modelo").
@@ -172,6 +188,7 @@ export interface CfgDraft {
   carga: string;
   descanso: string;
   obs: string;
+  videoUrl: string;
   editingId: string | null;
 }
 
@@ -182,6 +199,8 @@ export interface AddAlunaDraft {
   level: string;
   instagram: string;
   genero: Genero;
+  idade: string;
+  local: string;
 }
 
 export const emptyAddAlunaDraft = (): AddAlunaDraft => ({
@@ -191,6 +210,8 @@ export const emptyAddAlunaDraft = (): AddAlunaDraft => ({
   level: "",
   instagram: "",
   genero: "nao_informado",
+  idade: "",
+  local: "",
 });
 
 export interface ModeloDraft {
@@ -207,6 +228,8 @@ export interface AppState {
   alunas: Aluna[];
   treinoName: string;
   treinoFoco: string;
+  treinoEnfase: string;
+  treinoObsTreinadora: string;
   treinoId: string | null;
   treinoCreatedAt: string;
   treinoSentAt: string | null;

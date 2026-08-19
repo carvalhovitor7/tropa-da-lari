@@ -32,6 +32,8 @@ function initialState(): AppState {
     alunas: SEED_ALUNAS.map((a) => ({ ...a, treinos: a.treinos.map((t) => ({ ...t, exercises: t.exercises.map((e) => ({ ...e })) })) })),
     treinoName: "Treino A",
     treinoFoco: "Inferiores",
+    treinoEnfase: "",
+    treinoObsTreinadora: "",
     treinoId: null,
     treinoCreatedAt: "",
     treinoSentAt: null,
@@ -40,7 +42,7 @@ function initialState(): AppState {
     exercises: DEMO_EXERCISES.slice(0, 4).map((e) => ({ ...e })),
     lastDefaults: { series: 4, reps: "10", descanso: "90s" },
     searchQuery: "",
-    cfg: { exerciseName: "", series: 4, reps: "10", carga: "", descanso: "90s", obs: "", editingId: null },
+    cfg: { exerciseName: "", series: 4, reps: "10", carga: "", descanso: "90s", obs: "", videoUrl: "", editingId: null },
     iniciarNome: "Treino B",
     iniciarFoco: "Corpo inteiro",
     iniciarWeeklyTargets: [],
@@ -115,6 +117,8 @@ interface AppApi {
   approve: () => void;
   markSent: () => void;
   setCfg: (patch: Partial<AppState["cfg"]>) => void;
+  setTreinoEnfase: (v: string) => void;
+  setTreinoObsTreinadora: (v: string) => void;
   toggleArr: (field: keyof AppState["triagemDraft"], item: string) => void;
   setDraft: (field: keyof AppState["triagemDraft"], value: unknown) => void;
   setIntensidade: (regiao: string, n: number) => void;
@@ -136,6 +140,8 @@ interface AppApi {
   submitAddAlunaLink: () => Promise<void>;
   submitAddAlunaManual: () => Promise<void>;
   updateAlunaInstagram: (id: string, instagram: string) => void;
+  updateAlunaProfile: (id: string, patch: { idade?: number; local?: string }) => void;
+  deleteAluna: (id: string) => Promise<boolean>;
   // "Criar modelo" (item 2)
   onCriarModelo: () => void;
   setModeloDraft: (patch: Partial<AppState["modeloDraft"]>) => void;
@@ -201,6 +207,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     goTo("montador", {
       treinoName: tr.name,
       treinoFoco: tr.foco,
+      treinoEnfase: tr.enfase || "",
+      treinoObsTreinadora: tr.observacoesTreinadora || "",
       treinoId: tr.id,
       treinoCreatedAt: tr.createdAt || new Date().toISOString(),
       treinoSentAt: tr.sentAt ?? null,
@@ -216,6 +224,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       goTo("montador", {
         treinoName: name,
         treinoFoco: foco,
+        treinoEnfase: "",
+        treinoObsTreinadora: "",
         treinoId: makeId(),
         treinoCreatedAt: new Date().toISOString(),
         treinoSentAt: null,
@@ -251,6 +261,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       history: [...s.history, s.screen],
       treinoName: s.iniciarNome,
       treinoFoco: s.iniciarFoco,
+      treinoEnfase: "",
+      treinoObsTreinadora: "",
       treinoId: makeId(),
       treinoCreatedAt: new Date().toISOString(),
       treinoSentAt: null,
@@ -292,7 +304,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const selectExercise = useCallback((name: string) => {
     setState((s) => ({
       ...s,
-      cfg: { exerciseName: name, series: s.lastDefaults.series, reps: s.lastDefaults.reps, carga: "", descanso: s.lastDefaults.descanso, obs: "", editingId: null },
+      cfg: {
+        exerciseName: name,
+        series: s.lastDefaults.series,
+        reps: s.lastDefaults.reps,
+        carga: "",
+        descanso: s.lastDefaults.descanso,
+        obs: "",
+        videoUrl: "",
+        editingId: null,
+      },
       screen: "config",
       history: [...s.history, s.screen],
     }));
@@ -301,7 +322,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const editExercise = useCallback((ex: Exercise) => {
     setState((s) => ({
       ...s,
-      cfg: { exerciseName: ex.name, series: ex.series, reps: ex.reps, carga: ex.carga, descanso: ex.descanso, obs: ex.obs, editingId: ex.id },
+      cfg: {
+        exerciseName: ex.name,
+        series: ex.series,
+        reps: ex.reps,
+        carga: ex.carga,
+        descanso: ex.descanso,
+        obs: ex.obs,
+        videoUrl: ex.videoUrl || "",
+        editingId: ex.id,
+      },
       screen: "config",
       history: [...s.history, s.screen],
     }));
@@ -321,7 +351,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addToTreino = useCallback(() => {
     setState((s) => {
-      const obj = { name: s.cfg.exerciseName, series: s.cfg.series, reps: s.cfg.reps, carga: s.cfg.carga, descanso: s.cfg.descanso, obs: s.cfg.obs };
+      const obj = {
+        name: s.cfg.exerciseName,
+        series: s.cfg.series,
+        reps: s.cfg.reps,
+        carga: s.cfg.carga,
+        descanso: s.cfg.descanso,
+        obs: s.cfg.obs,
+        videoUrl: s.cfg.videoUrl.trim() || undefined,
+      };
       let exercises: Exercise[];
       if (s.cfg.editingId) {
         exercises = s.exercises.map((e) => (e.id === s.cfg.editingId ? { ...e, ...obj } : e));
@@ -360,6 +398,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         sentAt: s.treinoSentAt ?? undefined,
         weeklyRepTargets: s.weeklyRepTargets,
         versions,
+        enfase: s.treinoEnfase || undefined,
+        observacoesTreinadora: s.treinoObsTreinadora || undefined,
       };
 
       const alunas = s.alunas.map((a) => {
@@ -396,6 +436,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setCfg = useCallback((patch: Partial<AppState["cfg"]>) => {
     setState((s) => ({ ...s, cfg: { ...s.cfg, ...patch } }));
   }, []);
+
+  const setTreinoEnfase = useCallback((v: string) => setState((s) => ({ ...s, treinoEnfase: v })), []);
+  const setTreinoObsTreinadora = useCallback((v: string) => setState((s) => ({ ...s, treinoObsTreinadora: v })), []);
 
   const toggleArr = useCallback((field: keyof AppState["triagemDraft"], item: string) => {
     setState((s) => {
@@ -507,6 +550,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 notes: entry.aluna.notes,
                 instagram: entry.aluna.instagram ?? existing.instagram ?? "",
                 genero: entry.aluna.genero ?? existing.genero ?? "nao_informado",
+                idade: entry.aluna.idade ?? existing.idade,
+                local: entry.aluna.local ?? existing.local,
               });
             } else {
               byId.set(entry.aluna.id, {
@@ -523,6 +568,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 genero: entry.aluna.genero ?? "nao_informado",
                 hasTreinos: false,
                 treinos: [],
+                idade: entry.aluna.idade,
+                local: entry.aluna.local,
               });
             }
           }
@@ -553,7 +600,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const createAlunaRemote = useCallback(
-    async (body: Partial<AddAlunaDraft> & { name: string }): Promise<{ id: string; screeningToken: string } | null> => {
+    async (
+      body: Partial<Omit<AddAlunaDraft, "idade">> & { name: string; idade?: number }
+    ): Promise<{ id: string; screeningToken: string } | null> => {
       try {
         const res = await fetch("/api/alunas", {
           method: "POST",
@@ -572,6 +621,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addLocalAluna = useCallback((id: string, draft: AddAlunaDraft) => {
     setState((s) => {
+      const idadeNum = Number.parseInt(draft.idade, 10);
       const newAluna: Aluna = {
         id,
         name: draft.name.trim(),
@@ -586,6 +636,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         genero: draft.genero,
         hasTreinos: false,
         treinos: [],
+        idade: Number.isFinite(idadeNum) && idadeNum > 0 ? idadeNum : undefined,
+        local: draft.local || undefined,
       };
       return { ...s, alunas: [...s.alunas.filter((a) => a.id !== id), newAluna] };
     });
@@ -619,7 +671,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toast("Digite o nome do aluno.");
       return;
     }
-    const created = await createAlunaRemote(draft);
+    const idadeNum = Number.parseInt(draft.idade, 10);
+    const created = await createAlunaRemote({
+      ...draft,
+      idade: Number.isFinite(idadeNum) && idadeNum > 0 ? idadeNum : undefined,
+    });
     if (!created) {
       setState((s) => ({ ...s, addAlunaBusy: false }));
       toast("Não foi possível salvar o aluno agora.");
@@ -632,6 +688,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateAlunaInstagram = useCallback((id: string, instagram: string) => {
     setState((s) => ({ ...s, alunas: s.alunas.map((a) => (a.id === id ? { ...a, instagram } : a)) }));
+  }, []);
+
+  // Updates idade/local locally and best-effort persists to Postgres via
+  // PATCH /api/alunas/[id] (item: printable ficha "DADOS DO ALUNO" fields).
+  const updateAlunaProfile = useCallback((id: string, patch: { idade?: number; local?: string }) => {
+    setState((s) => ({ ...s, alunas: s.alunas.map((a) => (a.id === id ? { ...a, ...patch } : a)) }));
+    fetch(`/api/alunas/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }).catch(() => {
+      // offline / no DB configured — local state already updated
+    });
+  }, []);
+
+  // Item "Excluir aluno": deletes the aluna from Postgres (cascades to her
+  // screening row via ON DELETE CASCADE) and, on success, removes her from
+  // local state too. Returns whether the delete actually happened so the
+  // caller (Perfil.tsx) can navigate away only on success.
+  const deleteAluna = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/alunas/${id}`, { method: "DELETE" });
+      if (!res.ok) return false;
+    } catch {
+      return false;
+    }
+    setState((s) => {
+      const { [id]: _removed, ...triagens } = s.triagens;
+      void _removed;
+      return { ...s, alunas: s.alunas.filter((a) => a.id !== id), triagens };
+    });
+    return true;
   }, []);
 
   // --- item 2: "Criar modelo" ---------------------------------------------
@@ -702,6 +790,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     approve,
     markSent,
     setCfg,
+    setTreinoEnfase,
+    setTreinoObsTreinadora,
     toggleArr,
     setDraft,
     setIntensidade,
@@ -722,6 +812,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     submitAddAlunaLink,
     submitAddAlunaManual,
     updateAlunaInstagram,
+    updateAlunaProfile,
+    deleteAluna,
     onCriarModelo,
     setModeloDraft,
     saveModelo,

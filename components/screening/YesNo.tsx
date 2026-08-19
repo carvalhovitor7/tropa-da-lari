@@ -2,9 +2,9 @@
 
 export function YesNo({ value, onYes, onNo }: { value: boolean | null; onYes: () => void; onNo: () => void }) {
   const style = (active: boolean) => ({
-    background: active ? "#BC6B52" : "#FFFFFF",
-    color: active ? "#FFFFFF" : "#3A342E",
-    border: `1px solid ${active ? "#BC6B52" : "#E8DDD0"}`,
+    background: active ? "#7C4DBD" : "#FFFFFF",
+    color: active ? "#FFFFFF" : "#362F52",
+    border: `1px solid ${active ? "#7C4DBD" : "#E4DAF6"}`,
   });
   return (
     <div className="flex gap-2">

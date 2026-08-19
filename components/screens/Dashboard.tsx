@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { useApp } from "@/lib/store";
 import { treinoDateSummary } from "@/lib/dates";
 
@@ -19,15 +20,23 @@ export function Dashboard() {
 
   return (
     <div className="px-5 pt-5.5 pb-24 flex flex-col gap-6.5">
-      <div>
-        <div className="font-serif text-[34px] leading-[1.15] text-ink">Boa tarde, Lari.</div>
-        <div className="text-[15px] text-ink-soft mt-1">O que vamos montar hoje?</div>
+      <div className="flex items-center gap-3.5">
+        <div
+          className="w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-white"
+          style={{ boxShadow: "0 8px 18px -8px rgba(76,58,158,0.45)" }}
+        >
+          <Image src="/brand/logo.png" alt="Tropa da Lari" width={56} height={56} className="w-full h-full object-cover" priority />
+        </div>
+        <div>
+          <div className="font-serif text-[34px] leading-[1.15] text-ink">Boa tarde, Lari.</div>
+          <div className="text-[15px] text-ink-soft mt-1">O que vamos montar hoje?</div>
+        </div>
       </div>
 
       <button
         onClick={() => navTo("alunas")}
         className="w-full text-white border-none rounded-[18px] p-4.5 text-[17px] font-bold flex items-center justify-center gap-2 cursor-pointer"
-        style={{ background: "linear-gradient(135deg,#CD8468,#A15840)", boxShadow: "0 12px 28px -10px rgba(161,88,64,0.5)" }}
+        style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)", boxShadow: "0 12px 28px -10px rgba(161,88,64,0.5)" }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.4} strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" />
@@ -39,7 +48,7 @@ export function Dashboard() {
       <div className="bg-white rounded-[20px] p-4.5 flex items-center gap-4" style={{ boxShadow: "0 10px 26px -14px rgba(58,52,46,0.2)" }}>
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center shrink-0"
-          style={{ background: "conic-gradient(#BC6B52 0deg 288deg, #F1E4DA 288deg 360deg)" }}
+          style={{ background: "conic-gradient(#7C4DBD 0deg 288deg, #E7DFF5 288deg 360deg)" }}
         >
           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[13px] font-extrabold text-ink">80%</div>
         </div>
@@ -54,13 +63,13 @@ export function Dashboard() {
           </div>
           <div className="flex gap-1 mt-2.5 items-end">
             {[
-              { h: 10, c: "#E8ECE1" },
-              { h: 16, c: "#8C9A7B" },
-              { h: 22, c: "#6F7D5E" },
-              { h: 12, c: "#E8ECE1" },
-              { h: 18, c: "#8C9A7B" },
-              { h: 8, c: "#E8ECE1" },
-              { h: 8, c: "#E8ECE1" },
+              { h: 10, c: "#EDE7FA" },
+              { h: 16, c: "#8B7BC4" },
+              { h: 22, c: "#5B4E9E" },
+              { h: 12, c: "#EDE7FA" },
+              { h: 18, c: "#8B7BC4" },
+              { h: 8, c: "#EDE7FA" },
+              { h: 8, c: "#EDE7FA" },
             ].map((b, i) => (
               <div key={i} style={{ width: 8, height: b.h, borderRadius: 3, background: b.c }} />
             ))}

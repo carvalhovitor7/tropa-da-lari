@@ -49,7 +49,7 @@ export function Finalizado() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-5.5 p-10 text-center">
       <div className="w-18 h-18 rounded-full bg-sage-bg flex items-center justify-center">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6F7D5E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5B4E9E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 6L9 17l-5-5" />
         </svg>
       </div>
@@ -63,7 +63,7 @@ export function Finalizado() {
         <button
           onClick={goPdf}
           className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer"
-          style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+          style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
         >
           Gerar PDF
         </button>
@@ -75,10 +75,10 @@ export function Finalizado() {
           disabled={sharingStory}
           className="bg-white text-ink border border-border text-sm font-semibold py-3.5 rounded-full cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4C3A9E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="5" />
             <circle cx="12" cy="12" r="4" />
-            <circle cx="17.5" cy="6.5" r="0.6" fill="#A15840" />
+            <circle cx="17.5" cy="6.5" r="0.6" fill="#4C3A9E" />
           </svg>
           {sharingStory ? "Gerando imagem…" : canNativeShare ? "Compartilhar no Instagram" : "Baixar imagem para o Story"}
         </button>

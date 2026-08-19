@@ -51,7 +51,7 @@ export function BottomNav() {
     >
       {ITEMS.map(({ key, label, Icon }) => {
         const active = state.screen === key;
-        const color = active ? "#A15840" : "#8C7F70";
+        const color = active ? "#4C3A9E" : "#8C7F70";
         return (
           <button
             key={key}
@@ -61,7 +61,7 @@ export function BottomNav() {
           >
             <div
               className="w-10 h-7 rounded-full flex items-center justify-center"
-              style={{ background: active ? "#F1DFD5" : "transparent" }}
+              style={{ background: active ? "#ECE1F9" : "transparent" }}
             >
               <Icon c={color} />
             </div>

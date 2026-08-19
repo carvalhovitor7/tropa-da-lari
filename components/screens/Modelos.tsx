@@ -25,9 +25,9 @@ export function Modelos() {
       <button
         onClick={onCriarModelo}
         className="w-full bg-white text-terracotta text-[15px] font-bold py-4 rounded-2xl cursor-pointer flex items-center justify-center gap-2"
-        style={{ border: "1.5px dashed #BC6B52" }}
+        style={{ border: "1.5px dashed #7C4DBD" }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2.4} strokeLinecap="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4C3A9E" strokeWidth={2.4} strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
@@ -42,7 +42,7 @@ export function Modelos() {
             className="bg-white rounded-2xl p-4 flex flex-col gap-2"
             style={{
               boxShadow: "0 8px 22px -14px rgba(58,52,46,0.2)",
-              border: recommended ? "1.5px solid #BC6B52" : undefined,
+              border: recommended ? "1.5px solid #7C4DBD" : undefined,
             }}
           >
             <div className="flex items-center gap-2 flex-wrap">
@@ -51,7 +51,7 @@ export function Modelos() {
                 <span className="bg-sage-bg text-sage-text text-[10px] font-extrabold uppercase tracking-wide px-2 py-1 rounded-full">Seu modelo</span>
               )}
               {recommended && (
-                <span className="bg-terracotta-pill text-[#8A3B2C] text-[10px] font-extrabold uppercase tracking-wide px-2 py-1 rounded-full">
+                <span className="bg-terracotta-pill text-terracotta text-[10px] font-extrabold uppercase tracking-wide px-2 py-1 rounded-full">
                   Recomendado para {aluna.firstName}
                 </span>
               )}

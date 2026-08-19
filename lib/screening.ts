@@ -46,6 +46,19 @@ export function computeWarnings(t: TriagemDraft | undefined | null): string[] {
   return (t.dorRegioes || []).slice(0, 3);
 }
 
+// Short 1-2 line note for the printable ficha's "DADOS DO ALUNO" card,
+// summarizing dor/lesão/restrição from the screening. Falls back to a
+// reassuring default when there is no screening or nothing to report.
+export function summarizeRestricoes(t: TriagemDraft | undefined | null): string {
+  if (!t) return "Nenhuma restrição informada.";
+  const parts: string[] = [];
+  if (t.temDor && t.dorRegioes?.length) parts.push(`Dor: ${t.dorRegioes.join(", ")}`);
+  if (t.temLesao && t.lesaoRegiao) parts.push(`Lesão anterior: ${t.lesaoRegiao}`);
+  if (t.restricaoProfissional && t.restricaoTexto) parts.push(t.restricaoTexto);
+  if (parts.length === 0) return "Nenhuma restrição informada.";
+  return parts.join(" · ");
+}
+
 export interface ExerciseSuggestions {
   avaliar: { name: string; reason: string }[];
   atencao: { name: string; reason: string }[];

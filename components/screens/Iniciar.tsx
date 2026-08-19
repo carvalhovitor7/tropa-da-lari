@@ -100,7 +100,7 @@ export function Iniciar() {
         <button
           onClick={onComecarZero}
           className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer"
-          style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+          style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
         >
           Começar do zero
         </button>

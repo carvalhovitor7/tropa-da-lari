@@ -42,6 +42,8 @@ export async function POST(req: NextRequest) {
     notes?: string;
     instagram?: string;
     genero?: "feminino" | "masculino" | "nao_informado";
+    idade?: number;
+    local?: string;
   };
   if (!input.name.trim()) {
     return NextResponse.json({ error: "name_required" }, { status: 400 });

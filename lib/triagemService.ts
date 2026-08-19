@@ -67,6 +67,8 @@ function alunaFromRow(row: Row): AlunaRecord {
     genero: normalizeGenero(row.genero),
     hasTreinos: Boolean(row.has_treinos),
     treinos: [],
+    idade: typeof row.idade === "number" ? row.idade : undefined,
+    local: (row.local as string) || undefined,
     screeningToken: row.screening_token as string,
   };
 }
@@ -106,6 +108,8 @@ export interface NewAlunaInput {
   notes?: string;
   instagram?: string;
   genero?: Genero;
+  idade?: number;
+  local?: string;
 }
 
 // Used by POST /api/alunas — item 1 "Adicionar aluna". Covers both paths:
@@ -127,12 +131,39 @@ export async function createAluna(input: NewAlunaInput): Promise<AlunaRecord> {
   const token = generateScreeningToken();
   const genero = normalizeGenero(input.genero);
 
+  const idade = typeof input.idade === "number" && Number.isFinite(input.idade) ? input.idade : null;
+
   const { rows } = await sql`
-    INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, genero, has_treinos, screening_token)
-    VALUES (${id}, ${name}, ${firstName}, ${initials}, ${input.goal ?? ""}, ${input.freq ?? ""}, ${""}, ${input.level ?? ""}, ${input.notes ?? ""}, ${input.instagram ?? ""}, ${genero}, FALSE, ${token})
+    INSERT INTO alunas (id, name, first_name, initials, goal, freq, last_session, level, notes, instagram, genero, has_treinos, screening_token, idade, local)
+    VALUES (${id}, ${name}, ${firstName}, ${initials}, ${input.goal ?? ""}, ${input.freq ?? ""}, ${""}, ${input.level ?? ""}, ${input.notes ?? ""}, ${input.instagram ?? ""}, ${genero}, FALSE, ${token}, ${idade}, ${input.local ?? ""})
     RETURNING *
   `;
   return alunaFromRow(rows[0]);
+}
+
+// Used by PATCH /api/alunas/[id] — lets Larissa edit idade/local (and
+// instagram, already handled client-side/locally) from Perfil.tsx.
+export async function updateAluna(
+  id: string,
+  patch: { idade?: number | null; local?: string }
+): Promise<AlunaRecord | null> {
+  const { rows } = await sql`
+    UPDATE alunas SET
+      idade = COALESCE(${patch.idade ?? null}, idade),
+      local = COALESCE(${patch.local ?? null}, local)
+    WHERE id = ${id}
+    RETURNING *
+  `;
+  if (rows.length === 0) return null;
+  return alunaFromRow(rows[0]);
+}
+
+// Used by DELETE /api/alunas/[id] — item "Excluir aluno". Deleting the row
+// cascades to her screening (screenings.aluna_id REFERENCES alunas(id) ON
+// DELETE CASCADE), a single id-scoped statement, never a bulk delete.
+export async function deleteAluna(id: string): Promise<boolean> {
+  const { rowCount } = await sql`DELETE FROM alunas WHERE id = ${id}`;
+  return (rowCount ?? 0) > 0;
 }
 
 // --- public API ---------------------------------------------------------

@@ -53,18 +53,13 @@ export function Config() {
         </div>
 
         <div>
-          <div className="text-[13px] font-bold text-ink mb-2">Carga (opcional)</div>
-          <div className="flex gap-2.5">
-            <input
-              value={cfg.carga}
-              onChange={(e) => setCfg({ carga: e.target.value })}
-              placeholder="ex: 40"
-              className="flex-1 px-4 py-3.5 rounded-[14px] border border-border bg-white text-base text-ink"
-            />
-            <div className="flex items-center justify-center px-4.5 rounded-[14px] border border-border bg-tan text-[15px] font-bold text-sage">
-              kg
-            </div>
-          </div>
+          <div className="text-[13px] font-bold text-ink mb-2">Carga sugerida (opcional)</div>
+          <input
+            value={cfg.carga}
+            onChange={(e) => setCfg({ carga: e.target.value })}
+            placeholder="ex: 40kg, 60–70% 1RM ou carga moderada"
+            className="w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-base text-ink"
+          />
         </div>
 
         <div>
@@ -77,7 +72,7 @@ export function Config() {
         </div>
 
         <div>
-          <div className="text-[13px] font-bold text-ink mb-2">Observações (opcional)</div>
+          <div className="text-[13px] font-bold text-ink mb-2">Observação técnica (opcional)</div>
           <textarea
             value={cfg.obs}
             onChange={(e) => setCfg({ obs: e.target.value })}
@@ -85,13 +80,24 @@ export function Config() {
             className="w-full min-h-[70px] px-4 py-3.5 rounded-[14px] border border-border bg-white text-sm text-ink resize-none"
           />
         </div>
+
+        <div>
+          <div className="text-[13px] font-bold text-ink mb-2">Link do vídeo (opcional)</div>
+          <input
+            value={cfg.videoUrl}
+            onChange={(e) => setCfg({ videoUrl: e.target.value })}
+            placeholder="https://youtube.com/..."
+            className="w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-sm text-ink"
+          />
+          <div className="text-xs text-ink-soft mt-1.5">Aparece como &quot;▶ Ver execução&quot; para {cfg.exerciseName || "este exercício"}.</div>
+        </div>
       </div>
 
       <div className="sticky bottom-0 bg-app border-t border-border px-5 pt-3.5 pb-5.5">
         <button
           onClick={addToTreino}
           className="w-full text-white border-none text-base font-bold py-4 rounded-full cursor-pointer"
-          style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+          style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
         >
           {cfg.editingId ? "Salvar alterações" : "Adicionar ao treino"}
         </button>

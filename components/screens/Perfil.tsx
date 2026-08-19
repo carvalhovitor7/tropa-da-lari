@@ -4,10 +4,24 @@ import { useEffect, useState } from "react";
 import { currentAluna, useApp } from "@/lib/store";
 import { computeAlert, computeWarnings } from "@/lib/screening";
 import { treinoDateSummary } from "@/lib/dates";
-import { agree } from "@/lib/gender";
+import { agree, alunoNoun } from "@/lib/gender";
 
 export function Perfil() {
-  const { state, onFazerTriagem, onVerTriagem, onNovoTreino, onDuplicarAnterior, onUsarModelo, openTreino, syncTriagens, updateAlunaInstagram, toast } = useApp();
+  const {
+    state,
+    onFazerTriagem,
+    onVerTriagem,
+    onNovoTreino,
+    onDuplicarAnterior,
+    onUsarModelo,
+    openTreino,
+    syncTriagens,
+    updateAlunaInstagram,
+    updateAlunaProfile,
+    deleteAluna,
+    navTo,
+    toast,
+  } = useApp();
   const aluna = currentAluna(state);
   const triagem = state.triagens[aluna.id];
   const alert = computeAlert(triagem);
@@ -16,6 +30,12 @@ export function Perfil() {
   const [editingInsta, setEditingInsta] = useState(false);
   const [instaDraft, setInstaDraft] = useState(aluna.instagram);
   const [openHistoryFor, setOpenHistoryFor] = useState<string | null>(null);
+  const [editingIdade, setEditingIdade] = useState(false);
+  const [idadeDraft, setIdadeDraft] = useState(aluna.idade ? String(aluna.idade) : "");
+  const [editingLocal, setEditingLocal] = useState(false);
+  const [localDraft, setLocalDraft] = useState(aluna.local || "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Pull any triagem submitted from the student's own phone since we last
   // loaded this profile.
@@ -44,6 +64,34 @@ export function Perfil() {
     updateAlunaInstagram(aluna.id, instaDraft.replace(/^@/, "").trim());
     setEditingInsta(false);
     toast("Instagram atualizado.");
+  };
+
+  const saveIdade = () => {
+    const n = Number.parseInt(idadeDraft, 10);
+    updateAlunaProfile(aluna.id, { idade: Number.isFinite(n) && n > 0 ? n : undefined });
+    setEditingIdade(false);
+    toast("Idade atualizada.");
+  };
+
+  const saveLocal = () => {
+    updateAlunaProfile(aluna.id, { local: localDraft.trim() });
+    setEditingLocal(false);
+    toast("Local de treino atualizado.");
+  };
+
+  const noun = alunoNoun(aluna.genero);
+
+  const confirmDeleteAluno = async () => {
+    setDeleting(true);
+    const ok = await deleteAluna(aluna.id);
+    setDeleting(false);
+    if (ok) {
+      toast(`${aluna.firstName} ${agree(aluna.genero, "removido", "removida")}.`);
+      navTo("alunas");
+    } else {
+      setConfirmDelete(false);
+      toast("Não foi possível excluir agora. Tente novamente.");
+    }
   };
 
   return (
@@ -101,6 +149,65 @@ export function Perfil() {
         )}
       </div>
 
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.18)" }}>
+          <div className="text-[11px] text-ink-softer font-bold uppercase tracking-wide">Idade</div>
+          {editingIdade ? (
+            <div className="mt-1.5 flex items-center gap-2">
+              <input
+                autoFocus
+                type="number"
+                inputMode="numeric"
+                value={idadeDraft}
+                onChange={(e) => setIdadeDraft(e.target.value)}
+                className="w-14 text-sm text-ink outline-none border-b border-border pb-1"
+                placeholder="anos"
+              />
+              <button onClick={saveIdade} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none">
+                Salvar
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setIdadeDraft(aluna.idade ? String(aluna.idade) : "");
+                setEditingIdade(true);
+              }}
+              className="mt-1 text-sm text-ink font-semibold bg-transparent border-none cursor-pointer p-0 block"
+            >
+              {aluna.idade ? `${aluna.idade} anos` : <span className="text-ink-soft font-normal">+ adicionar</span>}
+            </button>
+          )}
+        </div>
+        <div className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.18)" }}>
+          <div className="text-[11px] text-ink-softer font-bold uppercase tracking-wide">Local de treino</div>
+          {editingLocal ? (
+            <div className="mt-1.5 flex items-center gap-2">
+              <input
+                autoFocus
+                value={localDraft}
+                onChange={(e) => setLocalDraft(e.target.value)}
+                className="flex-1 min-w-0 text-sm text-ink outline-none border-b border-border pb-1"
+                placeholder="ex: Academia completa"
+              />
+              <button onClick={saveLocal} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none shrink-0">
+                Salvar
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setLocalDraft(aluna.local || "");
+                setEditingLocal(true);
+              }}
+              className="mt-1 text-sm text-ink font-semibold bg-transparent border-none cursor-pointer p-0 block text-left"
+            >
+              {aluna.local || <span className="text-ink-soft font-normal">+ adicionar</span>}
+            </button>
+          )}
+        </div>
+      </div>
+
       {aluna.notes && <div className="bg-sage-bg rounded-[14px] p-3.5 text-[13px] text-sage-text">{aluna.notes}</div>}
 
       {triagem ? (
@@ -128,10 +235,10 @@ export function Perfil() {
             onClick={copyLink}
             disabled={copying}
             className="text-left bg-white rounded-2xl p-3.5 flex items-center gap-2.5 cursor-pointer disabled:opacity-60"
-            style={{ border: "1.5px dashed #BC6B52" }}
+            style={{ border: "1.5px dashed #7C4DBD" }}
           >
             <div className="w-9 h-9 rounded-full bg-terracotta-pill flex items-center justify-center shrink-0">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4C3A9E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 007 0l2-2a5 5 0 00-7-7l-1 1" />
                 <path d="M14 11a5 5 0 00-7 0l-2 2a5 5 0 007 7l1-1" />
               </svg>
@@ -162,7 +269,7 @@ export function Perfil() {
                     <div className="text-[13px] text-ink-soft">{tr.foco}</div>
                     <div className="text-[11px] text-ink-softer mt-1">{treinoDateSummary(tr.createdAt, tr.sentAt)}</div>
                   </div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BC6B52" strokeWidth={2.2} strokeLinecap="round">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C4DBD" strokeWidth={2.2} strokeLinecap="round">
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </button>
@@ -199,7 +306,7 @@ export function Perfil() {
             <button
               onClick={onNovoTreino}
               className="mt-1.5 text-white border-none text-sm font-bold px-5 py-3 rounded-full cursor-pointer"
-              style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+              style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
             >
               Criar primeiro treino
             </button>
@@ -221,6 +328,47 @@ export function Perfil() {
           <button onClick={onUsarModelo} className="bg-white text-ink border border-border text-sm font-semibold py-3.5 rounded-full cursor-pointer">
             Usar modelo
           </button>
+        </div>
+      )}
+
+      <button
+        onClick={() => setConfirmDelete(true)}
+        className="mt-2 bg-transparent border-none text-[13px] font-bold cursor-pointer py-2"
+        style={{ color: "#B5473A" }}
+      >
+        Excluir {noun}
+      </button>
+
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4"
+          onClick={() => !deleting && setConfirmDelete(false)}
+        >
+          <div
+            className="w-full sm:max-w-[400px] bg-app rounded-t-[24px] sm:rounded-[24px] p-5 pb-7 flex flex-col gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="font-serif text-[22px] text-ink">Excluir {noun}?</div>
+            <div className="text-[13px] text-ink-soft leading-relaxed">
+              Isso vai remover <b>{aluna.name}</b>, {agree(aluna.genero, "seus", "seus")} treinos e {agree(aluna.genero, "sua", "sua")} triagem
+              permanentemente. Essa ação não pode ser desfeita.
+            </div>
+            <button
+              onClick={confirmDeleteAluno}
+              disabled={deleting}
+              className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer disabled:opacity-60"
+              style={{ background: "#B5473A" }}
+            >
+              {deleting ? "Excluindo…" : `Sim, excluir ${noun}`}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              disabled={deleting}
+              className="bg-white text-ink border border-border text-sm font-semibold py-3.5 rounded-full cursor-pointer disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       )}
     </div>

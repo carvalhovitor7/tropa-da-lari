@@ -9,25 +9,32 @@
   --font-serif: var(--font-serif);
   --font-sans: var(--font-sans);
 
-  --color-ink: #3a342e;
-  --color-ink-soft: #746c61;
-  --color-ink-softer: #8c7f70;
+  --color-ink: #362f52;
+  --color-ink-soft: #6c6390;
+  --color-ink-softer: #8b81ab;
   --color-surface: #ffffff;
-  --color-app: #fbf5ef;
-  --color-border: #e8ddd0;
+  --color-app: #f7f3fd;
+  --color-border: #e4daf6;
 
-  --color-terracotta-from: #cd8468;
-  --color-terracotta-to: #a15840;
-  --color-terracotta: #a15840;
-  --color-terracotta-strong: #bc6b52;
-  --color-terracotta-pill: #f1dfd5;
+  /* Brand palette sampled from public/brand/logo.png: a diagonal gradient
+     from pale lavender-pink (top-left) through mid purple to deep
+     blue-violet (bottom-right), white text-on-color, and a purple accent
+     for headings/labels on light surfaces. Replaces the old
+     terracotta/sage palette app-wide (token names kept as-is so every
+     existing terracotta/sage utility class in the components automatically
+     repaints in the new brand colors). */
+  --color-terracotta-from: #c9a0e8;
+  --color-terracotta-to: #4c3a9e;
+  --color-terracotta: #6b3fa6;
+  --color-terracotta-strong: #7c4dbd;
+  --color-terracotta-pill: #ece1f9;
 
-  --color-sage: #6f7d5e;
-  --color-sage-soft: #8c9a7b;
-  --color-sage-bg: #e8ece1;
-  --color-sage-text: #4e5a44;
+  --color-sage: #5b4e9e;
+  --color-sage-soft: #8b7bc4;
+  --color-sage-bg: #ede7fa;
+  --color-sage-text: #4a3d82;
 
-  --color-tan: #f4ebe2;
+  --color-tan: #f3edfa;
 
   --color-yellow-bg: #fbf0dc;
   --color-yellow-text: #b08628;
@@ -57,8 +64,8 @@ body {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  color: #3a342e;
-  background: linear-gradient(135deg, #e7ede0 0%, #f7f1e8 45%, #f3e1d4 100%);
+  color: #362f52;
+  background: linear-gradient(135deg, #f3edfd 0%, #f8f4fd 45%, #eee3f7 100%);
   background-attachment: fixed;
   -webkit-tap-highlight-color: transparent;
 }
@@ -76,7 +83,7 @@ input {
 
 textarea:focus,
 input:focus {
-  border-color: #bc6b52 !important;
+  border-color: #7c4dbd !important;
 }
 
 button {

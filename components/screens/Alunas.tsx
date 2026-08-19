@@ -30,7 +30,7 @@ export function Alunas() {
         <button
           onClick={openAddAluna}
           className="shrink-0 text-white border-none text-[13px] font-bold px-4 py-2.5 rounded-full cursor-pointer flex items-center gap-1.5"
-          style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+          style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.6} strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -82,10 +82,10 @@ export function Alunas() {
                 <button
                   onClick={() => chooseAddAlunaMode("link")}
                   className="text-left bg-white rounded-2xl p-4 flex items-center gap-3 cursor-pointer"
-                  style={{ border: "1.5px dashed #BC6B52" }}
+                  style={{ border: "1.5px dashed #7C4DBD" }}
                 >
                   <div className="w-9 h-9 rounded-full bg-terracotta-pill flex items-center justify-center shrink-0">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A15840" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4C3A9E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                       <path d="M10 13a5 5 0 007 0l2-2a5 5 0 00-7-7l-1 1" />
                       <path d="M14 11a5 5 0 00-7 0l-2 2a5 5 0 007 7l1-1" />
                     </svg>
@@ -100,7 +100,7 @@ export function Alunas() {
                   className="text-left bg-white rounded-2xl p-4 flex items-center gap-3 cursor-pointer border border-border"
                 >
                   <div className="w-9 h-9 rounded-full bg-sage-bg flex items-center justify-center shrink-0">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6F7D5E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5B4E9E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 20h9" />
                       <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" />
                     </svg>
@@ -133,7 +133,7 @@ export function Alunas() {
                   onClick={submitAddAlunaLink}
                   disabled={state.addAlunaBusy || !state.addAlunaDraft.name.trim()}
                   className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+                  style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
                 >
                   {state.addAlunaBusy ? "Gerando link…" : "Gerar link de triagem"}
                 </button>
@@ -153,7 +153,7 @@ export function Alunas() {
                 <button
                   onClick={copyLink}
                   className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer"
-                  style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+                  style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
                 >
                   {copied ? "Copiado!" : "Copiar link"}
                 </button>
@@ -241,6 +241,28 @@ export function Alunas() {
                     </select>
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[13px] font-bold text-ink">Idade (opcional)</label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={state.addAlunaDraft.idade}
+                      onChange={(e) => setAddAlunaDraft({ idade: e.target.value })}
+                      placeholder="anos"
+                      className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[13px] font-bold text-ink">Local de treino</label>
+                    <input
+                      value={state.addAlunaDraft.local}
+                      onChange={(e) => setAddAlunaDraft({ local: e.target.value })}
+                      placeholder="ex: Academia"
+                      className="mt-1.5 w-full px-4 py-3.5 rounded-[14px] border border-border bg-white text-[15px] text-ink"
+                    />
+                  </div>
+                </div>
                 <div>
                   <label className="text-[13px] font-bold text-ink">Instagram (opcional)</label>
                   <div className="mt-1.5 flex items-center gap-2 px-4 py-3.5 rounded-[14px] border border-border bg-white">
@@ -257,7 +279,7 @@ export function Alunas() {
                   onClick={submitAddAlunaManual}
                   disabled={state.addAlunaBusy || !state.addAlunaDraft.name.trim()}
                   className="text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg,#CD8468,#A15840)" }}
+                  style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)" }}
                 >
                   {state.addAlunaBusy ? "Salvando…" : "Salvar aluno"}
                 </button>

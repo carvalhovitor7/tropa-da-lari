@@ -11,7 +11,7 @@ export function BackHeader({ eyebrow, title }: { eyebrow: string; title: string 
         aria-label="Voltar"
         className="w-11 h-11 rounded-full border border-border bg-white flex items-center justify-center cursor-pointer shrink-0"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3A342E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#362F52" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
       </button>

@@ -17,3 +17,16 @@ export function treinoDateSummary(createdAt?: string, sentAt?: string): string {
   else if (createdAt) parts.push("Ainda não enviado");
   return parts.join(" · ");
 }
+
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// Derives the "TREINO A/B/C..." letter shown on the printable ficha from
+// this treino's order among the aluna's treinos (by creation date), so a
+// treino keeps a stable, predictable letter even though its id is a random
+// string (see lib/store.tsx makeId).
+export function treinoLetterFor(treinos: { id: string; createdAt?: string }[], treinoId: string | null): string {
+  const sorted = [...treinos].sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+  const idx = sorted.findIndex((t) => t.id === treinoId);
+  if (idx < 0) return LETTERS[sorted.length] || "?";
+  return LETTERS[idx] || "?";
+}

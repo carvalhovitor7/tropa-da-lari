@@ -40,14 +40,16 @@ export function StepDor() {
           {dorSel.map((r) => (
             <div key={r} className="bg-white rounded-[14px] p-3.5" style={{ boxShadow: "0 6px 16px -10px rgba(58,52,46,0.15)" }}>
               <div className="text-[13px] font-bold text-ink mb-2">{r} — intensidade do desconforto</div>
-              <div className="flex gap-1 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
                 {Array.from({ length: 11 }, (_, n) => n).map((n) => {
                   const active = (d.dorIntensidade[r] ?? -1) === n;
                   return (
                     <button
                       key={n}
                       onClick={() => setIntensidade(r, n)}
-                      className="w-6.5 h-6.5 rounded-[7px] text-[11px] font-bold cursor-pointer"
+                      aria-label={`Intensidade ${n} de 10`}
+                      aria-pressed={active}
+                      className="w-11 h-11 rounded-xl text-[13px] font-bold cursor-pointer"
                       style={{
                         background: active ? "#7C4DBD" : "#FFFFFF",
                         color: active ? "#FFFFFF" : "#362F52",

@@ -128,7 +128,10 @@ export function StudentTriagemFlow({ token, firstName, genero }: { token: string
               })()}
             </div>
 
-            <div className="sticky bottom-0 bg-app border-t border-border px-5 pt-3.5 pb-5.5 shrink-0">
+            <div
+              className="sticky bottom-0 bg-app border-t border-border px-5 pt-3.5 shrink-0"
+              style={{ paddingBottom: "calc(22px + env(safe-area-inset-bottom))" }}
+            >
               <button
                 onClick={stage === "resumo" ? submit : goNext}
                 className="w-full text-white border-none text-base font-bold py-4 rounded-full cursor-pointer"

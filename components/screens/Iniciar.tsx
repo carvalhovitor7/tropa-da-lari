@@ -53,7 +53,7 @@ export function Iniciar() {
       <div>
         <button
           onClick={() => setShowEmphasis((v) => !v)}
-          className="text-[13px] font-bold text-terracotta bg-transparent border-none cursor-pointer p-0 flex items-center gap-1.5"
+          className="text-[13px] font-bold text-terracotta bg-transparent border-none cursor-pointer min-h-11 -my-2.5 flex items-center gap-1.5"
         >
           {showEmphasis ? "− " : "+ "}Ênfase semanal por grupo muscular (opcional)
         </button>

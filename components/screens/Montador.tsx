@@ -59,7 +59,7 @@ export function Montador() {
               <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-sage-bg flex items-center justify-center text-sage-text text-[10px] font-bold">
                 {ex.name.slice(0, 2).toUpperCase()}
               </div>
-              <div className="pt-0.5 text-[#C8BEB1] cursor-grab shrink-0">
+              <div className="pt-0.5 text-ink-softer cursor-grab shrink-0">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                   <line x1="4" y1="7" x2="20" y2="7" />
                   <line x1="4" y1="12" x2="20" y2="12" />
@@ -128,7 +128,10 @@ export function Montador() {
         </button>
       </div>
 
-      <div className="sticky bottom-0 bg-app border-t border-border px-5 pt-3.5 pb-5.5 flex flex-col gap-2.5">
+      <div
+        className="sticky bottom-0 bg-app border-t border-border px-5 pt-3.5 flex flex-col gap-2.5"
+        style={{ paddingBottom: "calc(22px + env(safe-area-inset-bottom))" }}
+      >
         <div className="text-xs text-ink-softer font-bold">
           {state.exercises.length} exercício{state.exercises.length === 1 ? "" : "s"}
         </div>

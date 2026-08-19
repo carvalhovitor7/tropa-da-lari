@@ -24,7 +24,7 @@ export function Busca() {
   return (
     <div className="px-5 pt-1 pb-10 flex flex-col gap-4.5">
       <div className="relative">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C7F70" strokeWidth={2.2} className="absolute left-3.5 top-3.5">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6C6390" strokeWidth={2.2} className="absolute left-3.5 top-3.5">
           <circle cx="11" cy="11" r="7" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -90,7 +90,7 @@ export function Busca() {
                 <button
                   key={r}
                   onClick={() => selectExercise(r)}
-                  className="bg-tan border-none rounded-full px-3.5 py-2 text-[13px] font-semibold text-ink cursor-pointer"
+                  className="inline-flex items-center bg-tan border-none rounded-full px-3.5 min-h-11 text-[13px] font-semibold text-ink cursor-pointer"
                 >
                   {r}
                 </button>
@@ -104,7 +104,7 @@ export function Busca() {
                 <button
                   key={f}
                   onClick={() => selectExercise(f)}
-                  className="bg-sage-bg border-none rounded-full px-3.5 py-2 text-[13px] font-semibold text-sage-text cursor-pointer"
+                  className="inline-flex items-center bg-sage-bg border-none rounded-full px-3.5 min-h-11 text-[13px] font-semibold text-sage-text cursor-pointer"
                 >
                   {f}
                 </button>
@@ -122,7 +122,7 @@ export function Busca() {
                       <button
                         key={it}
                         onClick={() => selectExercise(it)}
-                        className="bg-white border border-border rounded-full px-3.5 py-2 text-[13px] font-semibold text-ink cursor-pointer"
+                        className="inline-flex items-center bg-white border border-border rounded-full px-3.5 min-h-11 text-[13px] font-semibold text-ink cursor-pointer"
                       >
                         {it}
                       </button>
@@ -154,7 +154,7 @@ export function Busca() {
       <button
         onClick={() => selectExercise("Exercício personalizado")}
         className="w-full bg-transparent text-[13px] font-semibold text-ink-soft py-3.5 rounded-[14px] cursor-pointer"
-        style={{ border: "1px dashed #C8BEB1" }}
+        style={{ border: "1px dashed #C9A0E8" }}
       >
         + Criar exercício personalizado
       </button>

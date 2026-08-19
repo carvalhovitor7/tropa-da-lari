@@ -170,17 +170,17 @@ export function Acompanhamento() {
 
       {vencidas.length > 0 && (
         <div className="rounded-2xl p-3.5" style={{ background: "#FBF0DC" }}>
-          <div className="text-[13px] font-bold" style={{ color: "#B08628" }}>
+          <div className="text-[13px] font-bold" style={{ color: "#836318" }}>
             ⚠ {vencidas.length} {vencidas.length === 1 ? "aluno está" : "alunos estão"} com treino vencido (sem
             atualização há mais de {state.settings.renewalWeeks} semanas)
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             {vencidas.map((a) => (
               <button
                 key={a.id}
                 onClick={() => setAlunaId(a.id)}
-                className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-white cursor-pointer border-none"
-                style={{ color: "#B08628" }}
+                className="text-[11px] font-bold px-3 min-h-9 rounded-full bg-white cursor-pointer border-none"
+                style={{ color: "#836318" }}
               >
                 {a.firstName}
               </button>
@@ -298,7 +298,7 @@ export function Acompanhamento() {
                   {/* e.data is a bare YYYY-MM-DD date; appending a midday time avoids
                       the calendar day shifting when parsed as UTC in timezones behind it. */}
                   <div className="text-[13px] font-bold text-ink">{formatDatePt(`${e.data}T12:00:00`)}</div>
-                  <button onClick={() => removeEntry(e.id)} className="text-[11px] font-bold cursor-pointer bg-transparent border-none" style={{ color: "#B5473A" }}>
+                  <button onClick={() => removeEntry(e.id)} className="text-[11px] font-bold cursor-pointer bg-transparent border-none min-h-11 px-1" style={{ color: "#B5473A" }}>
                     Remover
                   </button>
                 </div>

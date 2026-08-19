@@ -18,6 +18,7 @@ export function Config() {
           <div className="flex items-center gap-4.5">
             <button
               onClick={() => setCfg({ series: Math.max(1, cfg.series - 1) })}
+              aria-label="Diminuir séries"
               className="w-11 h-11 rounded-full border border-border bg-white text-xl font-bold text-ink cursor-pointer"
             >
               −
@@ -25,6 +26,7 @@ export function Config() {
             <span className="text-[22px] font-extrabold text-ink min-w-6 text-center">{cfg.series}</span>
             <button
               onClick={() => setCfg({ series: cfg.series + 1 })}
+              aria-label="Aumentar séries"
               className="w-11 h-11 rounded-full border border-border bg-white text-xl font-bold text-ink cursor-pointer"
             >
               +
@@ -44,7 +46,7 @@ export function Config() {
               <button
                 key={rp}
                 onClick={() => setCfg({ reps: rp })}
-                className="bg-tan border-none rounded-full px-3 py-1.5 text-xs font-semibold text-ink cursor-pointer"
+                className="bg-tan border-none rounded-full px-3 min-h-9 text-xs font-semibold text-ink cursor-pointer"
               >
                 {rp}
               </button>
@@ -93,7 +95,7 @@ export function Config() {
         </div>
       </div>
 
-      <div className="sticky bottom-0 bg-app border-t border-border px-5 pt-3.5 pb-5.5">
+      <div className="sticky bottom-0 bg-app border-t border-border px-5 pt-3.5" style={{ paddingBottom: "calc(22px + env(safe-area-inset-bottom))" }}>
         <button
           onClick={addToTreino}
           className="w-full text-white border-none text-base font-bold py-4 rounded-full cursor-pointer"

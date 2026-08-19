@@ -52,7 +52,7 @@ export function BottomNav() {
     >
       {ITEMS.map(({ key, label, Icon }) => {
         const active = state.screen === key;
-        const color = active ? "#4C3A9E" : "#8C7F70";
+        const color = active ? "#4C3A9E" : "#6C6390";
         return (
           <button
             key={key}

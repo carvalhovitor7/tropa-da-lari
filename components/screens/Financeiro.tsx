@@ -128,7 +128,7 @@ export function Financeiro() {
                   exportAlunosCsv(state.alunas);
                   setExportOpen(false);
                 }}
-                className="text-left text-[13px] px-3 py-2.5 rounded-[10px] hover:bg-app cursor-pointer bg-transparent border-none text-ink"
+                className="text-left text-[13px] px-3 py-2.5 min-h-11 flex items-center rounded-[10px] hover:bg-app cursor-pointer bg-transparent border-none text-ink"
               >
                 CSV — Alunos
               </button>
@@ -137,7 +137,7 @@ export function Financeiro() {
                   exportFinanceiroCsv(state.alunas, Object.values(entries));
                   setExportOpen(false);
                 }}
-                className="text-left text-[13px] px-3 py-2.5 rounded-[10px] hover:bg-app cursor-pointer bg-transparent border-none text-ink"
+                className="text-left text-[13px] px-3 py-2.5 min-h-11 flex items-center rounded-[10px] hover:bg-app cursor-pointer bg-transparent border-none text-ink"
               >
                 CSV — Financeiro
               </button>
@@ -146,7 +146,7 @@ export function Financeiro() {
                   void doExportEvolucao();
                   setExportOpen(false);
                 }}
-                className="text-left text-[13px] px-3 py-2.5 rounded-[10px] hover:bg-app cursor-pointer bg-transparent border-none text-ink"
+                className="text-left text-[13px] px-3 py-2.5 min-h-11 flex items-center rounded-[10px] hover:bg-app cursor-pointer bg-transparent border-none text-ink"
               >
                 CSV — Evolução
               </button>
@@ -155,7 +155,7 @@ export function Financeiro() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setExportOpen(false)}
-                className="text-left text-[13px] px-3 py-2.5 rounded-[10px] hover:bg-app cursor-pointer text-ink no-underline"
+                className="text-left text-[13px] px-3 py-2.5 min-h-11 flex items-center rounded-[10px] hover:bg-app cursor-pointer text-ink no-underline"
               >
                 Backup para impressão / PDF
               </a>
@@ -173,7 +173,7 @@ export function Financeiro() {
             placeholder="ex: chave aleatória, e-mail ou telefone"
             className="flex-1 px-4 py-3 rounded-[14px] border border-border bg-white text-[14px] text-ink"
           />
-          <button onClick={savePix} className="text-xs font-bold text-terracotta bg-transparent border-none cursor-pointer shrink-0">
+          <button onClick={savePix} className="text-xs font-bold text-terracotta bg-transparent border-none cursor-pointer shrink-0 min-h-11 px-1">
             Salvar
           </button>
         </div>

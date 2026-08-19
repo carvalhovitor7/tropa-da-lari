@@ -69,8 +69,8 @@ export function Dashboard() {
           className="text-left rounded-2xl p-3.5 flex items-center gap-2.5 cursor-pointer border-none"
           style={{ background: "#FBF0DC" }}
         >
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#B08628" }} />
-          <span className="text-[13px] font-bold" style={{ color: "#B08628" }}>
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#836318" }} />
+          <span className="text-[13px] font-bold" style={{ color: "#836318" }}>
             {vencidas.length} {vencidas.length === 1 ? "aluno está" : "alunos estão"} com treino vencido
           </span>
         </button>
@@ -79,7 +79,7 @@ export function Dashboard() {
       <button
         onClick={() => navTo("alunas")}
         className="w-full text-white border-none rounded-[18px] p-4.5 text-[17px] font-bold flex items-center justify-center gap-2 cursor-pointer"
-        style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)", boxShadow: "0 12px 28px -10px rgba(161,88,64,0.5)" }}
+        style={{ background: "linear-gradient(135deg,#C9A0E8,#4C3A9E)", boxShadow: "0 12px 28px -10px rgba(76,58,158,0.5)" }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2.4} strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" />

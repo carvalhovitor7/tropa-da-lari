@@ -33,7 +33,7 @@ export function TriagemIntro() {
       >
         Começar triagem
       </button>
-      <button onClick={onTriagemPular} className="w-full bg-transparent text-ink-soft border-none text-[13px] font-semibold py-1 cursor-pointer">
+      <button onClick={onTriagemPular} className="w-full bg-transparent text-ink-soft border-none text-[13px] font-semibold min-h-11 cursor-pointer">
         Pular por enquanto
       </button>
     </div>

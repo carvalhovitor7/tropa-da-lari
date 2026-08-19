@@ -140,7 +140,7 @@ export function Perfil() {
               className="flex-1 text-sm text-ink outline-none border-b border-border pb-1"
               placeholder="usuario"
             />
-            <button onClick={saveInsta} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none">
+            <button onClick={saveInsta} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none min-h-11 px-1 shrink-0">
               Salvar
             </button>
           </div>
@@ -169,7 +169,7 @@ export function Perfil() {
               inputMode="tel"
               className="flex-1 text-sm text-ink outline-none border-b border-border pb-1"
             />
-            <button onClick={saveWhatsapp} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none">
+            <button onClick={saveWhatsapp} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none min-h-11 px-1 shrink-0">
               Salvar
             </button>
           </div>
@@ -200,7 +200,7 @@ export function Perfil() {
                 className="w-14 text-sm text-ink outline-none border-b border-border pb-1"
                 placeholder="anos"
               />
-              <button onClick={saveIdade} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none">
+              <button onClick={saveIdade} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none min-h-11 px-1 shrink-0">
                 Salvar
               </button>
             </div>
@@ -227,7 +227,7 @@ export function Perfil() {
                 className="flex-1 min-w-0 text-sm text-ink outline-none border-b border-border pb-1"
                 placeholder="ex: Academia completa"
               />
-              <button onClick={saveLocal} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none shrink-0">
+              <button onClick={saveLocal} className="text-xs font-bold text-terracotta cursor-pointer bg-transparent border-none min-h-11 px-1 shrink-0">
                 Salvar
               </button>
             </div>
@@ -314,7 +314,7 @@ export function Perfil() {
                   <div>
                     <button
                       onClick={() => setOpenHistoryFor(openHistoryFor === tr.id ? null : tr.id)}
-                      className="bg-transparent border-none text-[11px] font-bold text-terracotta cursor-pointer p-0"
+                      className="bg-transparent border-none text-[11px] font-bold text-terracotta cursor-pointer min-h-11 -my-2.5 flex items-center"
                     >
                       {openHistoryFor === tr.id ? "Ocultar histórico de alterações" : "Ver histórico de alterações"}
                     </button>

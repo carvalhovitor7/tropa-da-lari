@@ -84,7 +84,7 @@ export function Finalizado() {
           </svg>
           {sharingStory ? "Gerando imagem…" : canNativeShare ? "Compartilhar no Instagram" : "Baixar imagem para o Story"}
         </button>
-        <button onClick={salvarFinalizar} className="bg-transparent text-ink-soft border-none text-[13px] font-semibold py-2 cursor-pointer">
+        <button onClick={salvarFinalizar} className="bg-transparent text-ink-soft border-none text-[13px] font-semibold min-h-11 cursor-pointer">
           Salvar e finalizar
         </button>
       </div>

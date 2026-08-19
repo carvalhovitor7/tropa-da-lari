@@ -107,7 +107,7 @@ export function Alunas() {
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <div className="text-base font-bold text-ink">{al.name}</div>
                   {isAlunaVencida(al.treinos, state.settings.renewalWeeks) && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#FBF0DC", color: "#B08628" }}>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#FBF0DC", color: "#836318" }}>
                       Treino vencido
                     </span>
                   )}
@@ -170,7 +170,7 @@ export function Alunas() {
                     <div className="text-xs text-ink-soft mt-0.5">Preencha os dados do aluno você mesma.</div>
                   </div>
                 </button>
-                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
+                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer min-h-11">
                   Cancelar
                 </button>
               </>
@@ -197,7 +197,7 @@ export function Alunas() {
                 >
                   {state.addAlunaBusy ? "Gerando link…" : "Gerar link de triagem"}
                 </button>
-                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
+                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer min-h-11">
                   Cancelar
                 </button>
               </>
@@ -353,7 +353,7 @@ export function Alunas() {
                 >
                   {state.addAlunaBusy ? "Salvando…" : "Salvar aluno"}
                 </button>
-                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer py-1">
+                <button onClick={closeAddAluna} className="bg-transparent border-none text-[13px] font-semibold text-ink-soft cursor-pointer min-h-11">
                   Cancelar
                 </button>
               </>

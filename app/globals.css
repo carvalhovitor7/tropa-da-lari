@@ -11,7 +11,10 @@
 
   --color-ink: #362f52;
   --color-ink-soft: #6c6390;
-  --color-ink-softer: #8b81ab;
+  /* Darkened from the original #8b81ab (contrast ~3.6:1 on white, ~3.4:1 on
+     the app background) to #726892 (~4.9:1 / ~4.7:1) so small de-emphasized
+     text (timestamps, uppercase field labels) meets WCAG AA 4.5:1. */
+  --color-ink-softer: #726892;
   --color-surface: #ffffff;
   --color-app: #f7f3fd;
   --color-border: #e4daf6;
@@ -30,14 +33,18 @@
   --color-terracotta-pill: #ece1f9;
 
   --color-sage: #5b4e9e;
-  --color-sage-soft: #8b7bc4;
+  /* Darkened from #8b7bc4 (contrast ~3.4:1 on the app background — fails AA
+     for the eyebrow/label text it's used on) to #6e5fa8 (~4.7:1). */
+  --color-sage-soft: #6e5fa8;
   --color-sage-bg: #ede7fa;
   --color-sage-text: #4a3d82;
 
   --color-tan: #f3edfa;
 
   --color-yellow-bg: #fbf0dc;
-  --color-yellow-text: #b08628;
+  /* Darkened from #b08628 (contrast ~3:1 on --color-yellow-bg, fails AA) to
+     #836318 (~4.9:1). */
+  --color-yellow-text: #836318;
 
   --color-red-bg: #f6deda;
   --color-red-text: #b5473a;

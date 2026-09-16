@@ -45,7 +45,7 @@ function initialState(): AppState {
     exercises: DEMO_EXERCISES.slice(0, 4).map((e) => ({ ...e })),
     lastDefaults: { series: 4, reps: "10", descanso: "90s" },
     searchQuery: "",
-    cfg: { exerciseName: "", series: 4, reps: "10", carga: "", descanso: "90s", obs: "", videoUrl: "", editingId: null },
+    cfg: { exerciseName: "", isCustomName: false, series: 4, reps: "10", carga: "", descanso: "90s", obs: "", videoUrl: "", editingId: null },
     iniciarNome: "Treino B",
     iniciarFoco: "Corpo inteiro",
     iniciarWeeklyTargets: [],
@@ -117,7 +117,7 @@ interface AppApi {
   applyTemplate: (t: Modelo) => void;
   openBusca: () => void;
   setSearchQuery: (v: string) => void;
-  selectExercise: (name: string) => void;
+  selectExercise: (name: string, isCustom?: boolean) => void;
   editExercise: (ex: Exercise) => void;
   duplicateExercise: (ex: Exercise) => void;
   deleteExercise: (id: string) => void;
@@ -333,11 +333,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const openBusca = useCallback(() => goTo("busca"), [goTo]);
   const setSearchQuery = useCallback((v: string) => setState((s) => ({ ...s, searchQuery: v })), []);
 
-  const selectExercise = useCallback((name: string) => {
+  const selectExercise = useCallback((name: string, isCustom = false) => {
     setState((s) => ({
       ...s,
       cfg: {
-        exerciseName: name,
+        exerciseName: isCustom ? "" : name,
+        isCustomName: isCustom,
         series: s.lastDefaults.series,
         reps: s.lastDefaults.reps,
         carga: "",
@@ -356,6 +357,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ...s,
       cfg: {
         exerciseName: ex.name,
+        isCustomName: ex.isCustom ?? false,
         series: ex.series,
         reps: ex.reps,
         carga: ex.carga,
@@ -485,14 +487,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addToTreino = useCallback(() => {
     setState((s) => {
+      const name = s.cfg.exerciseName.trim();
+      if (!name) {
+        toast("Dê um nome ao exercício antes de adicionar.");
+        return s;
+      }
       const obj = {
-        name: s.cfg.exerciseName,
+        name,
         series: s.cfg.series,
         reps: s.cfg.reps,
         carga: s.cfg.carga,
         descanso: s.cfg.descanso,
         obs: s.cfg.obs,
         videoUrl: s.cfg.videoUrl.trim() || undefined,
+        isCustom: s.cfg.isCustomName,
       };
       let exercises: Exercise[];
       if (s.cfg.editingId) {

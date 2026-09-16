@@ -57,6 +57,9 @@ export interface Exercise {
   // exercise list (Montador/Revisao/Pdf) uses to turn contiguous runs into
   // bracketed groups with "3a"/"3b"-style numbering.
   conjugadoGroupId?: string;
+  // True when this exercise was created via "+ Criar exercício personalizado"
+  // rather than picked from the catalog — lets the name stay editable later.
+  isCustom?: boolean;
 }
 
 // A weekly total-rep emphasis target for a muscle group, independent of the
@@ -197,6 +200,7 @@ export const emptyDraft = (): TriagemDraft => ({
 
 export interface CfgDraft {
   exerciseName: string;
+  isCustomName: boolean;
   series: number;
   reps: string;
   carga: string;

@@ -152,7 +152,7 @@ export function Busca() {
       )}
 
       <button
-        onClick={() => selectExercise("Exercício personalizado")}
+        onClick={() => selectExercise("", true)}
         className="w-full bg-transparent text-[13px] font-semibold text-ink-soft py-3.5 rounded-[14px] cursor-pointer"
         style={{ border: "1px dashed #C9A0E8" }}
       >

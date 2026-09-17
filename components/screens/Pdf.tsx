@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { currentAluna, useApp } from "@/lib/store";
 import { alunoNoun } from "@/lib/gender";
 import { treinoLetterFor } from "@/lib/dates";
 import { summarizeRestricoes } from "@/lib/screening";
 import { buildExerciseBlocks, restLabelFor } from "@/lib/conjugado";
+import { downloadFichaPdf } from "@/lib/pdf";
 
 function FieldIcon({ path }: { path: string }) {
   return (
@@ -38,6 +40,17 @@ export function Pdf() {
   const { state, goTo } = useApp();
   const aluna = currentAluna(state);
   const triagem = state.triagens[aluna.id];
+  const [downloading, setDownloading] = useState(false);
+  const otherTreinos = aluna.treinos.filter((t) => t.id !== state.treinoId && t.exercises.length > 0).length;
+
+  const handleDownload = () => {
+    setDownloading(true);
+    try {
+      downloadFichaPdf(aluna, triagem);
+    } finally {
+      setDownloading(false);
+    }
+  };
   const noun = alunoNoun(aluna.genero);
   const letter = treinoLetterFor(
     aluna.treinos.length ? aluna.treinos : [{ id: state.treinoId || "novo", createdAt: state.treinoCreatedAt }],
@@ -240,9 +253,27 @@ export function Pdf() {
         </div>
       </div>
 
+      {otherTreinos > 0 && (
+        <div className="mt-4 text-center text-[11.5px] text-ink-soft leading-snug">
+          O PDF baixado vai reunir este treino + os outros {otherTreinos} treino{otherTreinos > 1 ? "s" : ""} d{noun === "aluna" ? "a" : "o"} {noun} em um único arquivo completo.
+        </div>
+      )}
+
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        className="w-full mt-4 text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer flex items-center justify-center gap-2"
+        style={{ background: "#4C3A9E", opacity: downloading ? 0.75 : 1 }}
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 3v13 M7 11l5 5 5-5 M4 21h16" />
+        </svg>
+        {downloading ? "Gerando PDF…" : "Baixar ficha completa (PDF)"}
+      </button>
+
       <button
         onClick={() => goTo("whatsapp")}
-        className="w-full mt-4.5 text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer"
+        className="w-full mt-2.5 text-white border-none text-[15px] font-bold py-4 rounded-full cursor-pointer"
         style={{ background: "#5B4E9E" }}
       >
         Enviar pelo WhatsApp
